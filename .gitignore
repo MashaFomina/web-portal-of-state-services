@@ -1,4 +1,2 @@
-/projects/*
-/services/target/*
-/web/target/*
-/.idea/*
+/web-portal/target/*
+/web-portal/.idea/*
