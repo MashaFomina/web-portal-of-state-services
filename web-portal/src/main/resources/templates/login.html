@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="utf-8"/>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <meta name="description" content=""/>
+    <meta name="author" content=""/>
+
+    <title>Вход</title>
+
+    <link href="/assets/bootstrap-3.3.7-dist/css/bootstrap.min.css" rel="stylesheet" />
+    <link href="/assets/css/styles.css" rel="stylesheet" />
+    <script src="/assets/jquery-3.1.0.min.js"></script>
+    <script src="/assets/bootstrap-3.3.7-dist/js/bootstrap.min.js"></script>
+</head>
+<body>
+
+<div class="container">
+
+    <form method="POST" action="/login" class="form-signin">
+        <h2 class="form-heading">Вход</h2>
+
+        <div th:class="${#error} ? 'form-group has-error' : 'form-group'">
+            <span th:text="${message}"></span>
+            <input name="username" type="text" class="form-control" placeholder="Имя пользователя" autofocus="true"/>
+            <input name="password" type="password" class="form-control" placeholder="Пароль"/>
+            <span th:text="${error}"></span>
+            <input type="hidden" th:attr="value=${_csrf.token},name=${_csrf.parameterName}"/>
+            <button class="btn btn-lg btn-primary btn-block" type="submit">Войти</button>
+            <h4 class="text-center"><a href="/registration">Создать аккаунт</a></h4>
+        </div>
+    </form>
+</div>
+</body>
+</html>

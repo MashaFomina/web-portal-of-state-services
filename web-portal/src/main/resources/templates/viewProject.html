@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <link href="/resources/assets/bootstrap-3.3.7-dist/css/bootstrap.min.css" rel="stylesheet" />
+    <link href="/resources/assets/css/styles.css" rel="stylesheet" />
+    <link href="/resources/assets/css/codemirror.css" rel="stylesheet" />
+    <script src="/resources/assets/jquery-3.1.0.min.js"></script>
+    <script src="/resources/assets/bootstrap-3.3.7-dist/js/bootstrap.min.js"></script>
+    <script src="/resources/assets/js/codemirror.js"></script>
+    <script src="/resources/assets/js/clike.js"></script>
+
+    <meta charset="utf-8"/>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <meta name="description" content=""/>
+    <meta name="author" content=""/>
+    <title>Adding project</title>
+    <script th:inline="javascript">
+        var files = [];
+        function saveAndCheck() {
+            /*<![CDATA[*/
+            var project_id = [[${project_id}]];
+            /*]]>*/
+
+            jQuery('#success').hide();
+            jQuery('textarea#result').val("");
+            updateFiles();
+            console.log(JSON.stringify(files));
+
+            $.ajax({
+                type : "POST",//"GET",
+                contentType : 'application/x-www-form-urlencoded;',
+                url : "/saveAndCheck",
+                data: {
+                    "title": jQuery("#title").val(),
+                    "desc": jQuery("#desc").val(),
+                    "attributes": jQuery("#attributes").val(),
+                    "project_id": project_id,
+                    "files": JSON.stringify(files)
+                },
+                timeout : 100000,
+                success : function(data) {
+                    if (data.success == true) {
+                        jQuery('textarea#result').val(data.message);
+                        jQuery('#error').hide();
+                        jQuery('#success').html("The changes were successfully saved, project was checked!").show();
+                    }
+                    else {
+                        jQuery('#error').html(data.message).show();
+                    }
+                },
+                error : function(e) {
+                    jQuery('#error').html("An error occurred on the server!").show();
+                }
+            });
+        }
+        function showContent(obj)
+        {
+            var element_hierarchy = jQuery(obj).parent().find('input[name="element_hierarchy"]').val();
+            /*<![CDATA[*/
+            var project_id = [[${project_id}]];
+            /*]]>*/
+            var content = '';
+            var input_file_name = jQuery('input[name="file_name"]');
+            var file_name = input_file_name.val();
+            var exists = false;
+            files.forEach(function(item, i, files) {
+                console.log( i + ": " + item.file + ", " + item.content);
+                if (element_hierarchy == item.file) {
+                    exists = true;
+                }
+            });
+            if (exists != true) {
+                $.ajax({
+                    type : "POST",
+                    contentType : 'application/x-www-form-urlencoded;',
+                    url : "/getFile",
+                    data: {
+                        "file": element_hierarchy,
+                        "project_id": project_id
+                    },
+                    timeout : 100000,
+                    success : function(data) {
+                        if (data.success == true) {
+                            files.push({"file":element_hierarchy,"content":data.content});
+                            updateEditor(input_file_name, element_hierarchy);
+                            jQuery('#error1').hide();
+                        }
+                        else {
+                            jQuery('#error1').html(data.message).show();
+                        }
+                    },
+                    error : function(e) {
+                        jQuery('#error1').html("An error occurred on the server!").show();
+                    }
+                });
+            }
+            else {
+                updateEditor(input_file_name, element_hierarchy);
+            }
+            console.log(JSON.stringify(files));
+        }
+        function updateEditor(input_file_name, element_hierarchy)
+        {
+            jQuery('.CodeMirror').each(function(i, el) {
+                var content = "";
+                if (input_file_name.val().length > 0) {
+                    files.forEach(function (item, i, files) {
+                        console.log(i + ": " + item.file + ", " + item.content);
+                        if (input_file_name.val() == item.file) {
+                            files.splice(i, 1);
+                        }
+                    });
+                    files.push({"file": input_file_name.val(), "content": el.CodeMirror.getDoc().getValue("\n")});
+                }
+                files.forEach(function(item, i, files) {
+                    console.log( i + ": " + item.file + ", " + item.content);
+                    if (element_hierarchy == item.file) {
+                        content = item.content;
+                    }
+                });
+                input_file_name.val(element_hierarchy);
+                el.CodeMirror.setValue(content);
+                el.CodeMirror.refresh();
+            });
+        }
+        function updateFiles()
+        {
+            var file_name = jQuery('input[name="file_name"]').val();
+            if (file_name.length > 0) {
+                jQuery('.CodeMirror').each(function (i, el) {
+                    var content = "";
+                    files.forEach(function (item, i, files) {
+                        console.log(i + ": " + item.file + ", " + item.content);
+                        if (file_name == item.file) {
+                            files.splice(i, 1);
+                        }
+                    });
+                    files.push({"file": file_name, "content": el.CodeMirror.getDoc().getValue("\n")});
+                });
+            }
+        }
+        function expandCollapse(obj)
+        {
+            var btn_expand = jQuery(obj);
+            var parent = btn_expand.parent().find('input[name="element_hierarchy"]').val();
+            var node = jQuery('input[name="parent_name"]').filter(function() { return this.value == parent }).parent();
+            if (node.is(':visible')) {
+                node.hide();
+                btn_expand.html('+');
+            }
+            else {
+                node.show();
+                btn_expand.html('&ndash;');
+            }
+        }
+    </script>
+</head>
+<body>
+<div>
+    <div th:switch="${project_id}">
+        <div class="alert alert-danger big-error" th:case="${0}">Project not found!</div>
+        <div class="container-header" th:case="*">
+            <div class="panel panel-default panel-primary">
+                    <div class="panel-heading text-center"><h3 th:text=" 'Project ' + ${project.title}"></h3></div>
+                    <div class="panel-body">
+                        <form id="data" method="post" enctype="multipart/form-data" class="form-horizontal">
+                            <div class="form-group">
+                                <div class="col-sm-2" th:with="indent=${8}">
+                                    <th:block data-th-each="element,iter : ${hierarchy}">
+
+                                        <th:block th:if="${element.level} == ${element.prev_level + 1} and  ${element.level > 3}" th:utext="
+                                        '&lt;div id=\'parent-id-'+${iter.index}+'\' style=\'display:none;\'&gt;&lt;input type=\'hidden\' name=\'parent_name\' value=\'' + ${element.parent} + '\'/&gt;'">
+                                        </th:block>
+                                        <th:block th:if="${element.level} == ${element.prev_level + 1} and  ${4 > element.level}" th:utext="
+                                        '&lt;div id=\'parent-id-'+${iter.index}+'\'&gt;&lt;input type=\'hidden\' name=\'parent_name\' value=\'' + ${element.parent} + '\'/&gt;'">
+                                        </th:block>
+
+                                        <th:block th:if="${element.prev_level - element.level > 0}" th:each="i : ${#numbers.sequence( 1, element.prev_level - element.level)}" th:utext="'&lt;/div&gt;'">
+                                        </th:block>
+
+                                        <div class="table-hierarchy">
+                                            <th:block th:if="${element.countChilds > 0}" th:switch="${element.level}">
+                                                <span class="indenter" th:style="'padding-left:' + ${(element.level * indent)} + 'px'"></span>
+                                                <a class="btn btn-mini btn-primary btn-hierarchy" style="cursor: pointer;" onclick="expandCollapse(this);" th:case="${1}">&ndash;</a>
+                                                <a class="btn btn-mini btn-primary btn-hierarchy" style="cursor: pointer;" onclick="expandCollapse(this);" th:case="${2}">&ndash;</a>
+                                                <a class="btn btn-mini btn-primary btn-hierarchy" style="cursor: pointer;" onclick="expandCollapse(this);" th:case="*">+</a>
+                                            </th:block>
+                                            <span class="indenter" th:if="${element.countChilds == 0}" th:style="'padding-left:' + ${(element.level * indent + 4)} + 'px'"></span>
+
+                                            <a class="element-hierarchy-title" th:if="${element.isFile == true and (element.extension == '' or element.extension=='c' or element.extension=='h' or element.extension=='txt')}" style="cursor: pointer;" onclick="showContent(this);" data-th-text="${element.name}"></a>
+                                            <span class="element-hierarchy-title" th:if="${element.isFile == false or (element.extension != '' and element.extension!='c' and element.extension!='h' and element.extension!='txt')}" data-th-text="${element.name}"></span>
+                                            <input type="hidden" name="element_hierarchy" th:attr="value=${element.parent} + ${file_separator} + ${element.name}"/>
+                                            <input type="hidden" name="element_parent" th:attr="value=${element.parent}"/>
+                                            <input type="hidden" name="element_hierarchy_id" th:attr="value=${iter.index}"/>
+                                        </div>
+                                    </th:block>
+                                </div>
+                                <div class="col-sm-10">
+                                    <div class="alert alert-danger px-2" style="display:none" id="error1"></div>
+                                    <textarea id="c-code">
+                                    </textarea>
+                                    <input type="hidden" name="file_name" value=""/>
+
+                                    <script>
+                                        var cEditor = CodeMirror.fromTextArea(document.getElementById("c-code"), {
+                                            lineNumbers: true,
+                                            matchBrackets: true,
+                                            mode: "text/x-csrc"
+                                        });
+                                        var mac = CodeMirror.keyMap.default == CodeMirror.keyMap.macDefault;
+                                        CodeMirror.keyMap.default[(mac ? "Cmd" : "Ctrl") + "-Space"] = "autocomplete";
+                                    </script>
+                                </div>
+                            </div>
+
+                            <div class="alert alert-danger px-2" style="display:none" id="error"></div>
+                            <div class="alert alert-success px-2" style="display:none" id="success"></div>
+
+                            <div class="form-group">
+                                <label class="control-label col-sm-2" for="title">Title:</label>
+                                <div class="col-sm-10">
+                                    <input id="title" type="text" th:attr="value=${project.title}" class="form-control" placeholder="Enter title" maxlength="255"/>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="control-label col-sm-2" for="desc">Description:</label>
+                                <div class="col-sm-10">
+                                    <input id="desc" type="text" th:attr="value=${project.description}" class="form-control" placeholder="Enter description" maxlength="255"/>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="control-label col-sm-2" for="attributes" title="Attributes for borealis">Attributes:</label>
+                                <div class="col-sm-10">
+                                    <input id="attributes" type="text" value="" class="form-control" placeholder="Enter attributes" maxlength="255"/>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <div class="col-sm-offset-2 col-sm-10">
+                                    <button type="button" class="btn btn-sm btn-primary" onclick="saveAndCheck();"><span class="glyphicon glyphicon-upload"></span>&nbsp;Save&nbsp;&amp;&nbsp;check</button>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="control-label col-sm-2" for="result">Result of check:</label>
+                                <div class="col-sm-10">
+                                    <textarea rows="5" cols="100" name="result" id="result" disabled="disabled" class="form-control" th:text="${project.title}"></textarea>
+                                </div>
+                            </div>
+                        </form>
+                        <!--<button type="button" onclick="resetFilter();" class="btn btn-sm btn-space btn-primary" title="Reset date and time"><span class="glyphicon glyphicon-remove"></span></button>
+                        <button type="button" onclick="getSensorData(false);" class="btn btn-sm btn-space btn-primary" title="Search"><span class="glyphicon glyphicon-search"></span></button>
+                        <div class="btn-group">
+                            <button type="button" class="btn btn-sm btn-primary" id="export" onclick="exportPNG();">Export</button>
+                            <button type="button" class="btn btn-sm btn-primary dropdown-toggle" id="export" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                <span class="caret"></span>
+                                <span class="sr-only">Toggle Dropdown</span>
+                            </button>
+                            <ul class="dropdown-menu">
+                                <li><a href="#" id="export-csv" onclick="exportCSV(0);">Data in using period in details (.csv)</a></li>
+                                <li><a href="#" id="export-csv" onclick="exportCSV(1);">Data just shown (.csv)</a></li>
+                                <li role="separator" class="divider"></li>
+                                <li><a href="#" id="export-csv" onclick="exportCSV(2);">Data during all time (.csv)</a></li>
+                                <li role="separator" class="divider"></li>
+                                <li><a href="#" id="export-png" onclick="exportPNG();">Data just shown (.png)</a></li>
+                            </ul>
+                        </div>
+                        <div class="btn-group">
+                            <button type="button" class="btn btn-sm btn-primary" id="remove-all" onclick="removeData();"><span class="glyphicon glyphicon-trash"></span>&nbsp;Remove all data</button>
+                            <button type="button" class="btn btn-sm btn-primary dropdown-toggle" id="remove-data" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                <span class="caret"></span>
+                                <span class="sr-only">Toggle Dropdown</span>
+                            </button>
+                            <ul class="dropdown-menu">
+                                <li><a href="#" id="remove-all" onclick="removeData();">Remove all data</a></li>
+                                <li><a href="#" id="remove-period" onclick="removeData(true);">Remove data in shown period</a></li>
+                            </ul>
+                        </div>
+                        <button type="button" onclick="window.location.href='/sensorservice/deviceSensors/${sensor.deviceId?html}';" class="btn btn-sm btn-space btn-primary pull-right" title="Back to sensors">Back</button>
+                        -->
+                    </div>
+            </div>
+        </div>
+    </div>
+</div>
+    <!--<h1>Project id <span data-th-text="${project_id}"></span>. Version id <span data-th-text="${version_id}"></span></h1>
+    <h2 th:text="Hello"></h2>-->
+    <!--
+    <div th:switch="${user.role}">
+        <p th:case="'admin'">User is an administrator</p>
+        <p th:case="#{roles.manager}">User is a manager</p>
+        <p th:case="*">User is some other thing</p>
+    </div>
+
+    <div th:if="${customer.anonymous}"> if customer is anonymous
+    <div>Welcome, Guest</div>
+</div>
+
+<div th:unless="${customer.anonymous}"> if customer is not anonymous(logged in)
+    <div th:text=" 'Hi,' + ${customer.name}">Hi, User</div>
+</div>
+<div th:switch="${#authentication}? ${#authorization.expression('isAuthenticated()')} : ${false}">
+  <span th:case="${false}">User is not logged in</span>
+  <span th:case="${true}">Logged in user</span>
+  <span th:case="*">Should never happen, but who knows...</span>
+</div>
+    -->
+</body>
+</html>

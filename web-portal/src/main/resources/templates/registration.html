@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="utf-8"/>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <meta name="description" content=""/>
+    <meta name="author" content=""/>
+
+    <title>Создание аккаунта</title>
+
+    <link href="/assets/bootstrap-3.3.7-dist/css/bootstrap.min.css" rel="stylesheet" />
+    <link href="/assets/css/styles.css" rel="stylesheet" />
+    <script src="/assets/jquery-3.1.0.min.js"></script>
+    <script src="/assets/bootstrap-3.3.7-dist/js/bootstrap.min.js"></script>
+</head>
+<body>
+<div class="container">
+    <form method="POST" class="form-signin" action="#" th:action="@{/registration}" th:object="${userForm}">
+        <h2 class="form-signin-heading">Создайте Ваш аккаунт</h2>
+            <div th:class="${#fields.errors('*')} ? 'form-group has-error' : 'form-group'">
+                <input id="username" name="username" th:field="*{username}" placeholder="Имя пользователя" type="text" autofocus="true" class="form-control" />
+                <span th:if="${#fields.hasErrors('username')}" th:errors="*{username}"></span>
+            </div>
+
+            <div th:class="${#fields.errors('*')} ? 'form-group has-error' : 'form-group'">
+                <input id="password" name="password" th:field="*{password}" placeholder="Пароль" type="password" class="form-control" />
+                <span th:if="${#fields.hasErrors('password')}" th:errors="*{password}"></span>
+            </div>
+
+            <div th:class="${#fields.errors('*')} ? 'form-group has-error' : 'form-group'">
+                <input id="passwordConfirm" name="passwordConfirm" th:field="*{passwordConfirm}" placeholder="Подтверждение пароля" type="password" class="form-control" />
+                <span th:if="${#fields.hasErrors('passwordConfirm')}" th:errors="*{passwordConfirm}"></span>
+            </div>
+
+            <div th:class="${#fields.errors('*')} ? 'form-group has-error' : 'form-group'">
+                <input id="fullName" name="fullName" th:field="*{fullName}" placeholder="Полное имя" type="text" class="form-control" />
+                <span th:if="${#fields.hasErrors('fullName')}" th:errors="*{fullName}"></span>
+            </div>
+
+            <div th:class="${#fields.errors('*')} ? 'form-group has-error' : 'form-group'">
+                <input id="email" name="email" th:field="*{email}" placeholder="Email" type="text" class="form-control" />
+                <span th:if="${#fields.hasErrors('email')}" th:errors="*{email}"></span>
+            </div>
+        <!--
+        <ul>
+            <li th:each="err : ${#fields.errors('username')}" th:text="${err}" />
+            <li th:each="err : ${#fields.errors('password')}" th:text="${err}" />
+            <li th:each="err : ${#fields.errors('passwordConfirm')}" th:text="${err}" />
+        </ul>
+        -->
+        <!--
+        <ul>
+            <li th:each="err : ${#fields.errors('*')}" th:text="${err}" />
+        </ul>
+        -->
+        <button class="btn btn-lg btn-primary btn-block" type="submit">Submit</button>
+    </form>
+</div>
+</body>
+</html>
