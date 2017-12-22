@@ -1,9 +1,9 @@
 package portal.services;
 
-import portal.model.user.User;
+import portal.model.user.*;
 
 public interface UserService {
-    void save(User user);
+    void save(Citizen user);
 
     User findByUsername(String username);
 }

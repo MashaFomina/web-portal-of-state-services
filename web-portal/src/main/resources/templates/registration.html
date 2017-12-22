@@ -7,7 +7,7 @@
     <meta name="description" content=""/>
     <meta name="author" content=""/>
 
-    <title>Создание аккаунта</title>
+    <title>Registration</title>
 
     <link href="/assets/bootstrap-3.3.7-dist/css/bootstrap.min.css" rel="stylesheet" />
     <link href="/assets/css/styles.css" rel="stylesheet" />
@@ -17,24 +17,24 @@
 <body>
 <div class="container">
     <form method="POST" class="form-signin" action="#" th:action="@{/registration}" th:object="${userForm}">
-        <h2 class="form-signin-heading">Создайте Ваш аккаунт</h2>
+        <h2 class="form-signin-heading">Registration</h2>
             <div th:class="${#fields.errors('*')} ? 'form-group has-error' : 'form-group'">
-                <input id="username" name="username" th:field="*{username}" placeholder="Имя пользователя" type="text" autofocus="true" class="form-control" />
+                <input id="username" name="username" th:field="*{username}" placeholder="User name" type="text" autofocus="true" class="form-control" />
                 <span th:if="${#fields.hasErrors('username')}" th:errors="*{username}"></span>
             </div>
 
             <div th:class="${#fields.errors('*')} ? 'form-group has-error' : 'form-group'">
-                <input id="password" name="password" th:field="*{password}" placeholder="Пароль" type="password" class="form-control" />
+                <input id="password" name="password" th:field="*{password}" placeholder="Password" type="password" class="form-control" />
                 <span th:if="${#fields.hasErrors('password')}" th:errors="*{password}"></span>
             </div>
 
             <div th:class="${#fields.errors('*')} ? 'form-group has-error' : 'form-group'">
-                <input id="passwordConfirm" name="passwordConfirm" th:field="*{passwordConfirm}" placeholder="Подтверждение пароля" type="password" class="form-control" />
+                <input id="passwordConfirm" name="passwordConfirm" th:field="*{passwordConfirm}" placeholder="Confirm password" type="password" class="form-control" />
                 <span th:if="${#fields.hasErrors('passwordConfirm')}" th:errors="*{passwordConfirm}"></span>
             </div>
 
             <div th:class="${#fields.errors('*')} ? 'form-group has-error' : 'form-group'">
-                <input id="fullName" name="fullName" th:field="*{fullName}" placeholder="Полное имя" type="text" class="form-control" />
+                <input id="fullName" name="fullName" th:field="*{fullName}" placeholder="Full name" type="text" class="form-control" />
                 <span th:if="${#fields.hasErrors('fullName')}" th:errors="*{fullName}"></span>
             </div>
 
@@ -42,6 +42,21 @@
                 <input id="email" name="email" th:field="*{email}" placeholder="Email" type="text" class="form-control" />
                 <span th:if="${#fields.hasErrors('email')}" th:errors="*{email}"></span>
             </div>
+			
+			<div th:class="${#fields.errors('*')} ? 'form-group has-error' : 'form-group'">
+				<input id="passport" name="passport" th:field="*{passport}" placeholder="Passport" type="text" class="form-control" maxlength="10" />
+				<span th:if="${#fields.hasErrors('policy')}" th:errors="*{passport}"></span>
+			</div>
+			
+			<div th:class="${#fields.errors('*')} ? 'form-group has-error' : 'form-group'">
+				<input id="policy" name="policy" th:field="*{policy}" placeholder="Policy" type="text" class="form-control" maxlength="16" />
+				<span th:if="${#fields.hasErrors('policy')}" th:errors="*{policy}"></span>
+			</div>
+
+			<div th:class="${#fields.errors('*')} ? 'form-group has-error' : 'form-group'">
+				<input id="birthDate" name="birthDate" th:field="*{birthDate}" placeholder="Birth date (format: 1995-10-11)" type="text" class="form-control" maxlength="10" />
+				<span th:if="${#fields.hasErrors('birthDate')}" th:errors="*{birthDate}"></span>
+			</div>
         <!--
         <ul>
             <li th:each="err : ${#fields.errors('username')}" th:text="${err}" />

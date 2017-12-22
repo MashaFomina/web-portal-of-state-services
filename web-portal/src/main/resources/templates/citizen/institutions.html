@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="utf-8"/>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <meta name="description" content=""/>
+    <meta name="author" content=""/>
+
+    <title>Institutions</title>
+
+    <link href="/assets/bootstrap-3.3.7-dist/css/bootstrap.min.css" rel="stylesheet" />
+    <link href="/assets/css/styles.css" rel="stylesheet" />
+    <script src="/assets/jquery-3.1.0.min.js"></script>
+    <script src="/assets/bootstrap-3.3.7-dist/js/bootstrap.min.js"></script>
+	<script>
+		jQuery(document).ready(function() {
+			$('#type').on('change', function() {
+                var cityEl = $('#city');
+                cityEl.hide();
+                $('#district').hide();
+				jQuery("#error-empty").hide();
+				$.ajax({
+                        type: "GET",
+                        url: "/get_cities",
+                        data: {
+                            "is_edu": this.value
+                        },
+                        timeout: 100000,
+                        success: function (data) {
+                            if (data.length > 0) {
+                                cityEl.find('option').remove();
+                                jQuery("#error").hide();
+                                for (var i = 0, len = data.length; len > i; ++i) {
+                                    cityEl.append('<option value="' + data[i] + '">' + data[i] + '</option>');
+                                }
+                                cityEl.show();
+                            }
+                            else {
+                                jQuery("#error").show();
+							}
+                        },
+                        error: function () {
+                            jQuery("#error").show();
+                        }
+				});
+			})
+			$('#city').on('change', function() {
+				var districtEl = $('#district');
+				districtEl.hide();
+                $.ajax({
+                    type: "GET",
+                    url: "/get_districts",
+                    data: {
+                        "is_edu": $('#type').val(),
+						"city": $('#city').val()
+                    },
+                    timeout: 100000,
+                    success: function (data) {
+                        if (data.length > 0) {
+                            districtEl.find('option').remove();
+                            jQuery("#error").hide();
+                            for (var i = 0, len = data.length; len > i; ++i) {
+                                districtEl.append('<option value="' + data[i] + '">' + data[i] + '</option>');
+                            }
+                            districtEl.show();
+                        }
+                        else {
+                            jQuery("#error").show();
+                        }
+                    },
+                    error: function () {
+                        jQuery("#error").show();
+                    }
+                });
+			})
+		});
+		function search() {
+			var tbody = $(".search-results tbody");
+			tbody.html("");
+            $.ajax({
+                type: "GET",
+                url: "/get_institutions",
+                data: {
+                    "is_edu": $('#type').val(),
+                    "city": $('#city').val(),
+                    "district": $('#district').val()
+                },
+                timeout: 100000,
+                success: function (data) {
+                    if (data.length > 0) {
+                        jQuery("#error").hide();
+                        for (var i = 0, len = data.length; len > i; ++i) {
+                            var markup = '<tr><td class="col-xs-4"><a href="/institutions?id=' + data[i].id + '">' + data[i].title + '</a></td><td class="col-xs-2">' + data[i].telephone + '</td><td class="col-xs-2">' + data[i].fax + '</td><td class="col-xs-4">' + data[i].address + '</td></tr>';
+                            tbody.append(markup);
+                        }
+                        $('.search-results').show();
+                    }
+                    else {
+                        jQuery("#error_empty").show();
+                    }
+                },
+                error: function () {
+                    jQuery("#error").show();
+                }
+            });
+		}
+	</script>
+</head>
+<body>
+<nav class="navbar navbar-inverse">
+  <div class="container-fluid">
+    <div class="navbar-header">
+      <a class="navbar-brand" href="#">Portal of state services</a>
+    </div>
+    <ul class="nav navbar-nav">
+      <li><a href="#">Profile</a></li>
+      <li class="active"><a href="#">Institutions</a></li>
+	  <li><a href="#">Tickets</a></li>
+	  <li><a href="#">Childs</a></li>
+	  <li><a href="#">Educational requests</a></li>
+    </ul>
+	<ul class="nav navbar-nav navbar-right">
+      <li><a href="#"><span class="glyphicon glyphicon-log-out"></span>&nbsp;Logout</a></li>
+    </ul>
+  </div>
+</nav>
+<div class="container">
+	<div class="row form-institution-search">
+		<form method="POST" action="#" th:action="@{/registration}" th:object="${userForm}" class="form-horizontal">
+				<h2 class="form-heading text-center">Search</h2>
+				<div class="form-group">
+					<div class="col-sm-4">
+						<select id="type" class="form-control">
+							<option value="1">Educational</option>
+							<option value="0">Medical</option>
+					   </select>
+					</div>       
+					<div class="col-sm-4">
+						<select id="city" class="form-control">
+					   </select>
+					</div>
+					<div class="col-sm-3">
+						<select id="district" class="form-control">
+						</select>
+					</div>
+					<div class="col-sm-1">
+						<button class="btn btn-sm btn-primary" type="button" onclick="search();">Search</button>
+					</div>
+				</div>		
+				<div class="alert alert-danger px-2" style="display:none" id="error">Error occured. Please, refresh page and try later.</div>
+				<div class="alert alert-danger px-2" style="display:none" id="error-empty">Institutions not found!</div>
+		</form>
+	</div>
+	<hr></hr>
+	<div class="row search-results">
+			<h2 class="form-signin-heading text-center">Institutions</h2>
+			<div>
+				<table class="table table-fixed">
+					<thead>
+						<tr>
+							<th class="col-xs-4">Title</th>
+							<th class="col-xs-2">Telephone</th>
+							<th class="col-xs-2">Fax</th>
+							<th class="col-xs-4">Address</th>
+						</tr>
+					</thead>
+					<tbody>
+					</tbody>
+				</table>
+		</div>
+	</div>
+</div>
+</body>
+</html>

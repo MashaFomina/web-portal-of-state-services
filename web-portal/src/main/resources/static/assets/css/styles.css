@@ -1,4 +1,41 @@
-﻿body {
+﻿body{
+  background-color: #bdc3c7;
+}
+hr {
+	border-top: 1px solid #c0bfbf;
+}
+.table-notifications {
+	height: 500px;
+    overflow: auto;
+}
+.table-seats {
+	height: 280px;
+    overflow: auto;
+}
+.dl-horizontal.institution-info dt {
+	text-align: left;
+    margin-left: 20px;
+}
+.form-add-child .btn-sm, .form-add-seats .btn-sm , .select-institution .btn-sm {
+	margin-top: 25px;
+}
+.table-tickets .btn-sm, .table-doctors .btn-sm {
+	margin-bottom: 5px;
+	margin-right: 10px;
+}
+.form-group.select-institution {
+    /*margin-bottom: 70px;*/
+}
+.modal-footer .btn-sm, .select-institution .btn-sm {
+	margin-right: 10px;
+}
+.institution-information .btn-sm {
+	margin-bottom: 10px;
+}
+.search-results, select#city, select#district {
+	display: none;
+}
+body {
     padding-top: 40px;
     padding-bottom: 40px;
     background-color: #eee;

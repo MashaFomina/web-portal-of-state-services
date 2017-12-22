@@ -1,14 +1,15 @@
 package portal.model.institutions;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 import javax.persistence.*;
+
+import portal.errors.InvalidAppointmentDateException;
+import portal.errors.NoFreeSeatsException;
 import portal.model.entities.EduRequest;
 import portal.model.entities.Feedback;
 import portal.errors.NoRightsException;
 import portal.model.entities.Seats;
+import portal.model.user.Citizen;
 
 @Entity (name = "EducationalInstitution")
 @DiscriminatorValue(value = "1")
@@ -69,6 +70,9 @@ public class EducationalInstitution extends Institution {
     public void setListSeats(List<Seats> listSeats) {
         this.listSeats = listSeats;
     }
+
+    @Transient
+    public boolean isEdu() { return true; }
 
     @Transient
     public void arrangeMaps() {
@@ -183,5 +187,63 @@ public class EducationalInstitution extends Institution {
         }
         feedbacks.add(feedback);
         return true;
+    }
+
+    public boolean acceptEduRequest(EduRequest request) throws NoRightsException {
+        if (!request.getInstitution().equals(this)) {
+            throw new NoRightsException("You have no rights to accept this educational request!");
+        }
+        if (request.isOpened()) {
+            request.changeStatus(EduRequest.Status.ACCEPTED_BY_INSTITUTION);
+            return true;
+        }
+        return false;
+    }
+
+    public void refuseEduRequest(EduRequest request) throws NoRightsException {
+        if (!request.getInstitution().equals(this)) {
+            throw new NoRightsException("You have no rights to accept this educational request!");
+        }
+        request.changeStatus(EduRequest.Status.REFUSED);
+    }
+
+    public boolean makeChildEnrolled(EduRequest request) throws NoRightsException, NoFreeSeatsException {
+        if (!request.getInstitution().equals(this)) {
+            throw new NoRightsException("You have no rights to accept this educational request!");
+        }
+
+        int classNumber = request.getClassNumber();
+        if (request.isAcceptedByParent()) {
+            synchronized (this) {
+                if (getFreeSeats(request.getClassNumber()) < 1) {
+                    throw new NoFreeSeatsException();
+                }
+                setSeats(classNumber, getSeats(classNumber), getBusySeats(classNumber) + 1);
+            }
+            request.changeStatus(EduRequest.Status.CHILD_IS_ENROLLED);
+            Citizen parent = request.getParent();
+            List<EduRequest> set = parent.getEduRequests();
+            Iterator<EduRequest> i = set.iterator();
+            while (i.hasNext()) {
+                EduRequest r = i.next(); // must be called before you can call i.remove()
+                if (!r.equals(request) && request.getChild().equals(r.getChild())) {
+                    r.getInstitution().removeEduRequest(r);
+                    i.remove();
+                }
+            }
+            return true;
+        }
+        return false;
+    }
+
+    public void makeAppointment(EduRequest request, Date date) throws NoRightsException, InvalidAppointmentDateException {
+        if (!request.getInstitution().equals(this)) {
+            throw new NoRightsException("You have no rights to accept this educational request!");
+        }
+        Date currentDate = new Date();
+        if (!date.after(currentDate)) {
+            throw new InvalidAppointmentDateException();
+        }
+        request.makeAppointment(date);
     }
 }

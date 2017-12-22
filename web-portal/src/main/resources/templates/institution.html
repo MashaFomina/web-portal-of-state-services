@@ -1,0 +1,979 @@
+<!DOCTYPE html>
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="utf-8"/>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <meta name="description" content=""/>
+    <meta name="author" content=""/>
+
+    <title>Institutions</title>
+
+    <link href="/assets/bootstrap-3.3.7-dist/css/bootstrap.min.css" rel="stylesheet" />
+    <link href="/assets/css/styles.css" rel="stylesheet" />
+    <script src="/assets/jquery-3.1.0.min.js"></script>
+    <script src="/assets/bootstrap-3.3.7-dist/js/bootstrap.min.js"></script>
+	<!--<link href="../static/assets/bootstrap-3.3.7-dist/css/bootstrap.min.css" rel="stylesheet" />
+    <link href="../static/assets/css/styles.css" rel="stylesheet" />
+    <script src="../static/assets/jquery-3.1.0.min.js"></script>
+    <script src="../static/assets/bootstrap-3.3.7-dist/js/bootstrap.min.js"></script>-->
+	<script th:inline="javascript">
+		/*<![CDATA[*/
+        var institutionId = [[${institution.id}]];
+        var userFullName = [[${user.fullName}]];
+        var csrfName = [[${_csrf.parameterName}]];
+        var csrfValue = [[${_csrf.token}]];
+		jQuery(document).ready(function() {
+			$('#type').on('change', function() {
+				console.log("type: " + this.value);
+				var cityEl = $('#city');
+				cityEl.hide();
+				$('#district').hide();
+				cityEl.append($('<option>', {
+					value: 1,
+					text: 'My option'
+				}));
+				cityEl.append($('<option>', {
+					value: 2,
+					text: 'My option 2'
+				}));
+				cityEl.show();
+			})
+			$('#city').on('change', function() {
+				console.log("type: " + $('#type').val());
+				console.log("city: " + $('#city').val());
+				var districtEl = $('#district');
+				districtEl.hide();
+				districtEl.append($('<option>', {
+					value: 1,
+					text: 'My district 1'
+				}));
+				districtEl.append($('<option>', {
+					value: 2,
+					text: 'My district 2'
+				}));
+				districtEl.show();
+			})
+		});
+		function search() {
+			var tBody = $(".search-results tbody");
+			tBody.html("");
+			$('.search-results').show();
+									
+			var title = '<a href="/institutions?id=' + '1' + '">' + 'Title' + '</a>';
+            var telephone = 'telephone';
+			var fax = 'fax';
+			var address = 'address';
+            var markup = '<tr><td class="col-xs-4">' + title + '</td><td class="col-xs-2">' + telephone + '</td><td class="col-xs-2">' + fax + '</td><td class="col-xs-4">' + address + '</td></tr>';
+            $("table tbody").append(markup);
+		}
+		function addEducationalRequest() {
+            jQuery("#error-request").hide();
+            jQuery("#success-request").hide();
+            $.ajax({
+                type: "GET",
+                url: "/add_request",
+                data: {
+                    "institutionId": institutionId,
+                    "childId": $('#request-child').val(),
+                    "classNumber": $('#request-class').val()
+                },
+                timeout: 100000,
+                success: function (data) {
+                    jQuery("#error-request").hide();
+                    jQuery("#success-request").show();
+                },
+                error: function () {
+                    jQuery("#error-request").show();
+                }
+            });
+		}
+        var reqId = 0;
+		var btnAppointment;
+        function saveRequestId(el) {
+            btnAppointment = jQuery(elem);
+            reqId = jQuery(elem).parent().find("input[name=id]").val();
+        }
+        function makeAppointment(this) {
+            var appointment = $('input[name=appointment-date]').val();
+            jQuery("#error-appointment").hide();
+            jQuery("#success-appointment").hide();
+            $.ajax({
+                type: "GET",
+                url: "/make_appointment",
+                data: {
+                    "request_id": reqId,
+                    "date": appointment
+                },
+                timeout: 100000,
+                success: function () {
+                    jQuery("#error-appointment").hide();
+                    var markup = '<tr><td class="col-xs-1">now</td><td class="col-xs-2">' + userFullName + '</td><td class="col-xs-2">' + toUserName + '</td><td class="col-xs-6">' + text + '</td><td></td></tr>';
+                    $("#table-request tbody").find('tr#el-request-' + reqId + ' td:eq(1)').html(appointment);
+                    jQuery("#success-appointment").show();
+                    btnAppointment.remove();
+                },
+                error: function () {
+                    jQuery("#error-appointment").show();
+                }
+            });
+        }
+        function modalAppointmentClean() {
+            var el = jQuery("#appointmentModal");
+            el.find("input[name=appointment-date]").val("");
+            el.find("#success-appointment").hide();
+            el.find("#error-appointment").hide();
+            el.find("a.btn-sm").show();
+        }
+		function saveFeedback() {
+            var text = $('input[name=new-feedback-text]').val();
+            jQuery("#error-feedback").hide();
+            jQuery("#success-feedback").hide();
+            $.ajax({
+                type: "GET",
+                url: "/add_feedback",
+                data: {
+                    "institutionId": institutionId,
+                    "text": text,
+                    "toUserId": toUserId
+                },
+                timeout: 100000,
+                success: function (data) {
+                    jQuery("#error-feedback").hide();
+                    var markup = '<tr><td class="col-xs-1">now</td><td class="col-xs-2">' + userFullName + '</td><td class="col-xs-2">' + toUserName + '</td><td class="col-xs-6">' + text + '</td><td></td></tr>';
+                    $("#table-feedbacks tbody").prepend(markup);
+                    jQuery("#success-feedback").show();
+                },
+                error: function () {
+                    jQuery("#error-feedback").show();
+                }
+            });
+		}
+        function saveInformation() {
+		    var form = jQuery("#institution-info-form");
+            var title = form.find("input[name=title]").val();
+            var city = form.find("input[name=city]").val();
+            var district = form.find("input[name=district]").val();
+            var address = form.find("input[name=address]").val();
+            var telephone = form.find("input[name=telephone]").val();
+            var fax = form.find("input[name=fax]").val();
+            jQuery("#error-info").hide();
+            jQuery("#success-info").hide();
+            if (title.length > 0 && city.length > 0 && district.length > 0 && address.length > 0 && telephone.length > 0 && fax.length > 0) {
+                jQuery("#error-info-empty").hide();
+                var form = {
+                    "title": title,
+                    "city": city,
+                    "district": district,
+                    "address": address,
+                    "telephone": telephone,
+                    "fax": fax,
+					"institutionId": institutionId
+                };
+                form[csrfName] = csrfValue;
+                $.ajax({
+                    type: "POST",
+                    contentType: 'application/x-www-form-urlencoded;',
+                    url: "/save_institution_info",
+                    data: form,
+                    timeout: 100000,
+                    success: function () {
+                        jQuery("#success-info").show();
+                    },
+                    error: function () {
+                        jQuery("#error-info").show();
+                    }
+                });
+            }
+            else {
+                jQuery("#error-info-empty").show();
+            }
+        }
+
+		var toUserId = 0;
+        var toUserName = 0;
+		function saveToUserId(el) {
+			toUserId = 0;
+            toUserName = "";
+			var idEl = jQuery(el).parent().find('input[name=toUserId]');
+			if (idEl.length) {
+				toUserId = idEl.val() > 0 ? idEl.val() : 0;
+                toUserName = jQuery(el).parent().find('input[name=toUserName]').val();
+			}
+		}
+        function modalFeedbackClean() {
+		    var el = jQuery("#feedbackModal");
+            el.find("input[name=new-feedback-text]").val("");
+		    el.find("#success-feedback").hide();
+            el.find("#error-feedback").hide();
+		}
+		function saveSeatsInfo() {
+		    var form =jQuery("#form-add-seats");
+            var classNumber = form.find("input[name=classNumber]").val();
+            var totalSeats = form.find("input[name=totalSeats]").val();
+            var busySeats = form.find("input[name=busySeats]").val();
+
+            jQuery("#error-seats").hide();
+            jQuery("#success-seats").hide();
+            if (classNumber.length > 0 && totalSeats.length > 0 && busySeats.length > 0) {
+                jQuery("#error-seats-empty").hide();
+                var form = {
+                    "classNumber": classNumber,
+                    "totalSeats": totalSeats,
+                    "busySeats": busySeats,
+					csrfName: csrfValue,
+                    "institutionId": institutionId
+                };
+                form[csrfName] = csrfValue;
+                $.ajax({
+                    type: "POST",
+                    contentType: 'application/x-www-form-urlencoded;',
+                    url: "/add_seats_info",
+                    data: form,
+                    timeout: 100000,
+                    success: function (data) {
+                        var tbody = $("#table-seats tbody");
+                        tbody.find('#el-class-number-' + classNumber).remove();
+                        var markup = '<tr id="el-class-number-' + classNumber + '"><td class="col-xs-3">' + classNumber + '</td><td class="col-xs-4">' + totalSeats + '</td><td class="col-xs-4">' + (totalSeats - busySeats) + '</td></tr>';;
+                        tbody.prepend(markup);
+                        jQuery("#success-seats").show();
+                    },
+                    error: function () {
+                        jQuery("#error-seats").show();
+                    }
+                });
+            }
+            else {
+                jQuery("#error-seats-empty").show();
+			}
+        }
+        function acceptRequest(elem) {
+            $.ajax({
+                type : "GET",
+                url : "/accept_request_repr",
+                data: {
+                    "request_id": jQuery(elem).parent().find("input[name=id]").val()
+                },
+                timeout : 100000,
+                success : function() {
+                    jQuery(elem).parent().parent().find("td:eq(1)").html("ACCEPTED BY INSTITUTION");
+                    jQuery(elem).remove();
+                },
+                error : function() {
+                    var errorElem = '<div class="alert alert-danger alert-dismissable"><a href="#" class="close" data-dismiss="alert" aria-label="close">×</a>Error occurred. Please, refresh page and try later.</div>';
+                    jQuery(elem).parent().parent().find("td:eq(5)").append(errorElem);
+                }
+            });
+        }
+        function refuseRequest(elem) {
+            $.ajax({
+                type : "GET",
+                url : "/refuse_request",
+                data: {
+                    "request_id": jQuery(elem).parent().find("input[name=id]").val()
+                },
+                timeout : 100000,
+                success : function() {
+                    jQuery(elem).parent().parent().find("td:eq(1)").html("REFUSED");
+                    jQuery(elem).remove();
+                },
+                error : function() {
+                    var errorElem = '<div class="alert alert-danger alert-dismissable"><a href="#" class="close" data-dismiss="alert" aria-label="close">×</a>Error occurred. Please, refresh page and try later.</div>';
+                    jQuery(elem).parent().parent().find("td:eq(5)").append(errorElem);
+                }
+            });
+        }
+        function enrollRequest(elem) {
+            $.ajax({
+                type : "GET",
+                url : "/enroll_request",
+                data: {
+                    "request_id": jQuery(elem).parent().find("input[name=id]").val()
+                },
+                timeout : 100000,
+                success : function() {
+                    jQuery(elem).parent().parent().find("td:eq(1)").html("CHILD_IS_ENROLLED");
+                    jQuery(elem).remove();
+                },
+                error : function() {
+                    var errorElem = '<div class="alert alert-danger alert-dismissable"><a href="#" class="close" data-dismiss="alert" aria-label="close">×</a>Error occurred.  May be no free seats! Please, refresh page and try later.</div>';
+                    jQuery(elem).parent().parent().find("td:eq(5)").append(errorElem);
+                }
+            });
+        }
+		/*]]>*/
+	</script>
+</head>
+<body>
+<nav class="navbar navbar-inverse">
+  <div class="container-fluid">
+    	<div class="navbar-header">
+      		<a class="navbar-brand" href="#">Portal of state services</a>
+    	</div>
+	  	<th:block th:if="${user.isCitizen()}">
+			<ul class="nav navbar-nav">
+			  <li class="#"><a href="#">Profile</a></li>
+			  <li><a href="active">Institutions</a></li>
+			  <li><a href="#">Tickets</a></li>
+			  <li><a href="#">Childs</a></li>
+			  <li><a href="#">Educational requests</a></li>
+			</ul>
+	  	</th:block>
+		<ul class="nav navbar-nav navbar-right">
+		  <li><a href="#"><span class="glyphicon glyphicon-log-out"></span>&nbsp;Logout</a></li>
+		</ul>
+  </div>
+</nav>
+<div class="container">
+	<ul class="nav nav-tabs">
+		<li class="active"><a data-toggle="tab" href="#container-information">Infornmation</a></li>
+		<th:block th:if="${user.isMedicalRepresentative() || user.isCitizen()}">
+		<li><a data-toggle="tab" href="#container-doctors">Doctors</a></li>
+		<li><a data-toggle="tab" href="#container-tickets">Tickets</a></li>
+		</th:block>
+		<th:block th:if="${user.isEducationalRepresentative()}">
+		<li><a data-toggle="tab" href="#container-requests">Educational requests</a></li>
+		</th:block>
+	 </ul>
+</div>
+<div style="margin-top:15px;"></div>
+<div class="tab-content">
+<div id="container-information" class="container tab-pane fade in active">
+	<div class="row institution-information">
+		<div class="col-md-5">
+				<th:block th:if="${user.isCitizen()}">
+				<div class="row form-group select-institution">
+					<div class="col-sm-8">
+						<span>Select institution:</span>
+						<select id="type" class="form-control">
+							<option value="1">Educational</option>
+							<option value="0">Medical</option>
+						</select>
+					</div>
+					<div class="col-sm-4" th:if="${not #lists.isEmpty(user.childs)}">
+						<button type="button" class="btn btn-sm btn-primary pull-right" data-toggle="modal" data-target="#requestModal">Make request</button>
+					</div>
+				</div>
+				</th:block>
+				
+				<div class="clearfix"></div>
+				<th:block th:unless="${user.isEducationalRepresentative()}">
+				<div class="dl-horizontal institution-info">
+					<dl>
+						<dt>Title</dt>
+						<dd th:text="${institution.title}"></dd>
+					</dl>
+					<dl>
+						<dt>City</dt>
+						<dd th:text="${institution.city}"></dd>
+					</dl>
+					<dl>
+						<dt>District</dt>
+						<dd th:text="${institution.district}"></dd>
+					</dl>
+					<dl>
+						<dt>Address</dt>
+						<dd th:text="${institution.address}"></dd>
+					</dl>
+					<dl>
+						<dt>Telephone</dt>
+						<dd th:text="${institution.telephone}"></dd>
+					</dl>
+					<dl>
+						<dt>Fax</dt>
+						<dd th:text="${institution.fax}"></dd>
+					</dl>
+				</div>
+				</th:block>
+				<th:block th:if="${user.isEducationalRepresentative()}">
+					<form method="POST" id="institution-info-form">
+						<h2 class="form-heading">Edit information</h2>
+						<div class="form-group">
+							<input id="title" name="title" placeholder="Title" type="text" autofocus="true" class="form-control" th:attr="value=${institution.title}"/>
+						</div>
+						<div class="form-group">
+							<input id="city" name="city" placeholder="City" type="text" autofocus="true" class="form-control" th:attr="value=${institution.city}"/>
+						</div>
+						<div class="form-group">
+							<input id="district" name="district" placeholder="District" type="text" autofocus="true" class="form-control" th:attr="value=${institution.district}"/>
+						</div>
+						<div class="form-group">
+							<input id="address" name="address" placeholder="Address" type="text" autofocus="true" class="form-control" th:attr="value=${institution.address}"/>
+						</div>
+						<div class="form-group">
+							<input id="telephone" name="telephone" placeholder="Telephone" type="text" autofocus="true" class="form-control" th:attr="value=${institution.telephone}"/>
+						</div>
+						<div class="form-group">
+							<input id="fax" name="fax" placeholder="Fax" type="text" autofocus="true" class="form-control" th:attr="value=${institution.fax}"/>
+						</div>
+						<button class="btn btn-sm btn-primary btn-block" type="button" onclick="saveInformation();">Save</button>
+						<div class="alert alert-success px-2" style="display:none;" id="success-info">Changes are saved!</div>
+						<div class="alert alert-danger px-2" style="display:none" id="error-info">Error occured during saving information about institution. All fields must be filled! Please, refresh page and try later.</div>
+						<div class="alert alert-danger px-2" style="display:none" id="error-info-empty">You must fill all fields!</div>
+					</form>
+				</th:block>
+		</div>
+		<th:block th:if="${isEdu}">
+		<div class="col-md-7">
+			<h2 class="form-heading">Seats</h2>
+			<th:block th:if="${user.isEducationalRepresentative()}">
+			<div class="row form-add-seats">
+				<form method="POST" class="form-horizontal" id="form-add-seats">
+						<div class="form-group">
+							<div class="col-sm-4">
+								<label for="classNumber">Class number:</label>
+								<input id="classNumber" name="classNumber" placeholder="Class number" type="text" class="form-control" maxlength="2" />
+							</div>       
+							<div class="col-sm-4">
+								<label for="totalSeats">Total seats:</label>
+								<input id="totalSeats" name="totalSeats" placeholder="Total seats" type="text" class="form-control" maxlength="3" />
+							</div>
+							<div class="col-sm-3">
+								<label for="busySeats">Busy seats:</label>
+								<input id="busySeats" name="busySeats" placeholder="Busy seats:" type="text" class="form-control" maxlength="3" />
+							</div>
+							<div class="col-sm-1">
+								<button class="btn btn-sm btn-primary" type="button" onclick="saveSeatsInfo();">Add</button>
+							</div>
+						</div>
+						<div>
+							<div class="alert alert-success px-2" style="display:none;" id="success-seats">Changes are saved!</div>
+							<div class="alert alert-danger px-2" style="display:none" id="error-seats">Error occured during saving seats information. May be you enter invalid parameters? Please, refresh page and try later.</div>
+							<div class="alert alert-danger px-2" style="display:none" id="error-seats-empty">You must fill all fields!</div>
+						</div>
+				</form>
+			</div>
+			</th:block>
+			<div class="table-seats" id="table-seats">
+				<table class="table table-fixed">
+					<thead>
+						<tr>
+							<th class="col-xs-3">Class</th>
+							<th class="col-xs-4">Total seats</th>
+							<th class="col-xs-4">Free seats</th>
+							<th></th>
+						</tr>
+					</thead>
+					<tbody>
+					<th:block th:each="s : ${institution.listSeats}">
+						<tr th:attr="id=${'el-class-number-' + s.classNumber}">
+							<td class="col-xs-3" th:text="${s.classNumber}"></td>
+							<td class="col-xs-4" th:text="${s.seats}"></td>
+							<td class="col-xs-4" th:text="${s.seats - s.busySeats}"></td>
+							<td>
+								<!-- remove not described in system! -->
+								<!--
+								<th:block th:if="${user.isEducationalRepresentative()}">
+									<a class="btn btn-sm btn-primary" onclick="removeSeatsInfo(this);">
+										<span class="glyphicon glyphicon-remove"></span>
+										<input name="classNumber" type="hidden" th:attr="value=${s.id.classNumber}" />
+										<input name="id" type="hidden" th:attr="value=${institution.id}" />
+									</a>
+								</th:block>
+								-->
+							</td>
+				  		</tr>
+					</th:block>
+					</tbody>
+				</table>
+			</div>
+		</div>
+		</th:block>
+	</div>
+	<hr></hr>
+	<div class="row feedbacks">
+			<h2 class="form-signin-heading text-center">Feedbacks</h2>
+			<div class="row">
+				<a class="btn btn-sm btn-primary pull-right" data-toggle="modal" data-target="#feedbackModal" onclick="saveToUserId(this);">Add feedback</a>
+			</div>
+			
+			<div>
+				<table class="table table-fixed" id="table-feedbacks">
+					<thead>
+						<tr>
+							<th class="col-xs-1">Date</th>
+							<th class="col-xs-2">User</th>
+							<th class="col-xs-2">To user</th>
+							<th class="col-xs-6">Text</th>
+							<th></th>
+						</tr>
+					</thead>
+					<tbody>
+					<th:block th:each="f : ${institution.feedbacks}">
+						<tr>
+							<td class="col-xs-1" th:text="${#dates.format(f.date,'yyyy-MM-dd HH:mm')}"></td>
+							<td class="col-xs-2" th:text="${f.user.fullName}"></td>
+							<td class="col-xs-2" th:if="${f.toUser}" th:text="${f.toUser.fullName}"></td>
+							<td class="col-xs-2" th:unless="${f.toUser}"></td>
+							<td class="col-xs-6" th:text="${f.text}"></td>
+							<td>
+								<th:block th:if="${f.user.username != user.username}">
+									<a class="btn btn-sm btn-primary" data-toggle="modal" data-target="#feedbackModal" onclick="saveToUserId(this);">Add feedback</a>
+									<input name="toUserId" type="hidden" th:attr="value=${f.user.id}" />
+									<input name="toUserName" type="hidden" th:attr="value=${f.user.fullName}" />
+								</th:block>
+							</td>
+						</tr>
+					</th:block>
+					</tbody>
+				</table>
+		</div>
+	</div>
+</div>
+	<!--
+<div id="container-doctors" class="container tab-pane fade">
+	<h2 class="form-heading text-center">Doctors</h2>
+	<div class="row form-group select-institution">
+		<div class="col-sm-8">
+			<span>Select institution:</span>
+			<select id="type" class="form-control">
+				<option value="1">Educational</option>
+				<option value="0">Medical</option>
+			</select>
+		</div>
+		<div class="col-sm-4">
+			<button type="button" class="btn btn-sm btn-primary pull-right" data-toggle="modal" data-target="#doctorModal">Add doctor</button>
+		</div>
+	</div>
+	<div class="row">
+		<div class="alert alert-success px-2 col-sm-12" style="" id="success-doctor">Doctor successfully saved!</div>
+		<div class="alert alert-danger px-2 col-sm-12" style="display:none" id="error-doctor">Error occured during saving educational doctor. Please, refresh page and try later.</div>
+	</div>
+	<hr></hr>
+	<div class="row table-doctors">
+		<div>
+			<table class="table table-fixed">
+				<thead>
+					<tr>
+						<th class="col-xs-3">Full name</th>
+						<th class="col-xs-2">Email</th>
+						<th class="col-xs-3">Position</th>
+						<th class="col-xs-3">Summary</th>
+						<th></th>
+					</tr>
+				</thead>
+				<tbody>
+					<td class="col-xs-3" th:if="${request.appointment}" th:text="${#dates.format(request.appointment,'yyyy-MM-dd HH:mm')}">Full name</td>
+					<td class="col-xs-2" th:text="${request.classNumber}">Email</td>
+					<td class="col-xs-3" th:text="${request.classNumber}">Position</td>
+					<td class="col-xs-3" th:text="${request.classNumber}">Summary</td>
+					<td>
+						<a class="btn btn-sm btn-primary" onclick="removeDoctor(this);">
+							<span class="glyphicon glyphicon-remove"></span>				
+						</a>
+						<a class="btn btn-sm btn-primary" data-toggle="modal" data-target="#addTicketsModal">Add tickets</a>
+						<a class="btn btn-sm btn-primary" data-toggle="modal" data-target="#addTicketModal">Add ticket</a>
+						<input name="id" type="hidden" th:attr="value=${doctor.id}" />
+					</td>
+				</tbody>
+			</table>
+		</div>
+	</div>
+</div>
+<div id="container-tickets" class="container tab-pane fade">
+	<h2 class="form-heading text-center">Doctors</h2>
+	<div class="row form-group select-institution">
+		<div class="col-sm-4">
+			<span>Select institution:</span>
+			<select id="institution" class="form-control">
+				<option value="1">Educational</option>
+				<option value="0">Medical</option>
+			</select>
+		</div>
+		<div class="col-sm-4">
+			<span>Select doctor:</span>
+			<select id="doctor" class="form-control">
+				<option value="1">Educational</option>
+				<option value="0">Medical</option>
+			</select>
+		</div>
+		<div class="col-sm-4">
+			<button type="button" class="btn btn-sm btn-primary pull-right" data-toggle="modal" data-target="#addTicketsModal">Add tickets</button>
+			<button type="button" class="btn btn-sm btn-primary pull-right" data-toggle="modal" data-target="#addTicketModal">Add ticket</button>
+		</div>
+	</div>
+	<div class="row">
+		<div class="alert alert-success px-2 col-sm-12" style="" id="success-doctor">Doctor successfully saved!</div>
+		<div class="alert alert-danger px-2 col-sm-12" style="display:none" id="error-doctor">Error occured during saving educational doctor. Please, refresh page and try later.</div>
+	</div>
+	<hr></hr>
+	<div class="row table-tickets">
+		<div>
+			<table class="table table-fixed">
+				<thead>
+					<tr>
+						<th class="col-xs-1">Date</th>
+						<th class="col-xs-2">Doctor</th>
+						<th class="col-xs-3">Citizen</th>
+						<th class="col-xs-2">Child</th>
+						<th class="col-xs-1">Visited</th>
+						<th class="col-xs-2">Summary</th>
+						<th></th>
+					</tr>
+				</thead>
+					<tbody>
+					<th:block th:each="ticket : ${citizen.tickets}">
+						<tr>
+							<td class="col-xs-1" th:text="${#dates.format(ticket.date,'yyyy-MM-dd HH:mm')}"></td>
+							<td class="col-xs-2" th:text="${ticket.doctor.fullName}"></td>
+							<td class="col-xs-3" th:text="${ticket.institution.title}"></td>
+							<td class="col-xs-2" th:if="${ticket.child}" th:text="${ticket.child.fullName}"></td>
+							<td class="col-xs-2" th:unless="${ticket.child}"></td>
+							<td class="col-xs-1" th:if="${ticket.visited}">yes</td>
+							<td class="col-xs-1" th:unless="${ticket.visited}">no</td>
+							<td class="col-xs-2" th:text="${ticket.summary}"></td>
+							<td>
+								<th:block th:if="${ticket.canBeRefused()}">
+									<a class="btn btn-sm btn-primary" onclick="refuseTicket(this);">
+										<span class="glyphicon glyphicon-remove">&nbsp;Refuse</span>
+									</a>
+									<a class="btn btn-sm btn-primary" onclick="takeTicket(this);">
+										<span class="glyphicon glyphicon-remove">&nbsp;Take</span>
+									</a>
+									<a class="btn btn-sm btn-primary" onclick="removeTicket(this);">
+										<span class="glyphicon glyphicon-remove">&nbsp;</span>
+									</a>
+									<input name="id" type="hidden" th:attr="value=${ticket.id}"/>
+								</th:block>
+							</td>
+						</tr>
+					</th:block>
+					</tbody>
+			</table>
+		</div>
+	</div>
+</div>
+-->
+<th:block th:if="${user.isEducationalRepresentative()}">
+<div id="container-requests" class="container tab-pane fade">
+	<h2 class="form-heading text-center">Educational requests</h2>
+	<div class="row table-request">
+		<div>
+			<table class="table table-fixed">
+				<thead>
+					<tr>
+						<th class="col-xs-1">Date</th>
+						<th class="col-xs-2">Appoinment</th>
+						<th class="col-xs-2">Status</th>
+						<th class="col-xs-2">Child</th>
+						<th class="col-xs-1">Class</th>
+						<th class="col-xs-2">Birth date</th>
+						<th></th>
+					</tr>
+				</thead>
+					<tbody>
+					<th:block th:each="request : ${institution.eduRequests}">
+						<tr th:attr="id=${'el-request-' + request.id}">
+							<td class="col-xs-1" th:text="${#dates.format(request.creationDate,'yyyy-MM-dd')}">Date</td>
+							<td class="col-xs-2" th:if="${request.appointment}" th:text="${#dates.format(request.appointment,'yyyy-MM-dd HH:mm')}"></td>
+							<td class="col-xs-2" th:text="${request.status.getBeautifulText()}">Status</td>
+							<td class="col-xs-2" th:text="${request.child.fullName}"></td>
+							<td class="col-xs-1" th:text="${request.classNumber}">Class</td>
+							<td class="col-xs-2" th:text="${#dates.format(request.child.birthDate,'yyyy-MM-dd')}">Birth date</td>
+							<td>
+								<th:block th:if="${request.status == T(portal.model.entities.EduRequest.Status).OPENED}">
+									<a class="btn btn-sm btn-primary" onclick="acceptRequest(this);">Accept</a>
+								</th:block>
+								<th:block th:if="${request.appointment}">
+									<th:block th:if="${request.passedAppointment}">
+										<th:block th:unless="${request.closed}">
+											<a class="btn btn-sm btn-primary" onclick="refuseRequest(this);">Refuse</a>
+											<a class="btn btn-sm btn-primary" onclick="enrollRequest(this);">Enroll</a>
+										</th:block>
+									</th:block>
+								</th:block>
+								<th:block th:unless="${request.appointment}">
+									<th:block th:if="${request.status == T(portal.model.entities.EduRequest.Status).ACCEPTED_BY_PARENT}">
+										<a class="btn btn-sm btn-primary" onclick="saveRequestId(this);" data-toggle="modal" data-target="#appointmentModal" >Make appointment</a>
+									</th:block>
+								</th:block>
+								<input name="id" type="hidden" th:attr="value=${request.id}" />
+							</td>
+						</tr>
+					</th:block>
+					</tbody>
+			</table>
+		</div>
+	</div>
+</div>
+</th:block>
+</div>
+	<!-- Modal -->
+	<div id="addTicketsModal" class="modal fade" role="dialog">
+		<div class="modal-dialog">
+			<!-- Modal content-->
+			<div class="modal-content">
+				<div class="modal-header">
+					<button type="button" class="close" data-dismiss="modal">&times;</button>
+					<h4 class="modal-title">Add tickets (date format - 2017-06-26 17:45:55)</h4>
+				</div>
+				<div class="modal-body">
+					<div class="form-group row">
+							<div class="col-sm-4">
+								<label for="startDate">Start date:</label>
+								<input id="startDate" name="startDate" placeholder="Start date" type="text" class="form-control" maxlength="2" />
+							</div>       
+							<div class="col-sm-4">
+								<label for="endDate">End date:</label>
+								<input id="endDate" name="endDate" placeholder="End date" type="text" class="form-control" maxlength="3" />
+							</div>
+							<div class="col-sm-4">
+								<label for="interval">Interval in minutes:</label>
+								<input id="interval" name="interval" placeholder="Interval in minutes:" type="text" class="form-control" maxlength="3" />
+							</div>
+					</div>
+					<div class="alert alert-danger px-2" style="display:none" id="error-add-tickets-empty">You must fill all fields!</div>
+					<div class="alert alert-danger px-2" style="display:none" id="error-add-tickets">Error occured during adding tickets. Please, refresh page and try later.</div>
+				</div>
+				<div class="modal-footer">
+					<a class="btn btn-sm btn-primary pull-right" onclick="addEducationalRequest();">Add tickets</a>
+					<button type="button" class="btn btn-sm btn-default" data-dismiss="modal"><span class="glyphicon glyphicon-remove"></span>&nbsp;Close</button>
+				</div>
+			</div>
+		</div>
+	</div>
+	<!-- Modal -->
+	<div id="addTicketModal" class="modal fade" role="dialog">
+		<div class="modal-dialog">
+			<!-- Modal content-->
+			<div class="modal-content">
+				<div class="modal-header">
+					<button type="button" class="close" data-dismiss="modal">&times;</button>
+					<h4 class="modal-title">Add ticket (date format - 2017-06-26 17:45:55)</h4>
+				</div>
+				<div class="modal-body">
+					<div class="form-group row">
+							<div class="col-sm-12">
+								<label for="ticketDate">Ticket date:</label>
+								<input id="ticketDate" name="ticketDate" placeholder="Ticket date" type="text" class="form-control" maxlength="2" />
+							</div>       
+					</div>
+					<div class="alert alert-danger px-2" style="display:none" id="error-add-ticket-empty">You must fill all fields!</div>
+					<div class="alert alert-danger px-2" style="display:none" id="error-add-ticket">Error occured during adding tickets. Please, refresh page and try later.</div>
+				</div>
+				<div class="modal-footer">
+					<a class="btn btn-sm btn-primary pull-right" onclick="addEducationalRequest();">Add tickets</a>
+					<button type="button" class="btn btn-sm btn-default" data-dismiss="modal"><span class="glyphicon glyphicon-remove"></span>&nbsp;Close</button>
+				</div>
+			</div>
+		</div>
+	</div>
+	<!-- Modal -->
+	<div id="removeTicketsModal" class="modal fade" role="dialog">
+		<div class="modal-dialog">
+			<!-- Modal content-->
+			<div class="modal-content">
+				<div class="modal-header">
+					<button type="button" class="close" data-dismiss="modal">&times;</button>
+					<h4 class="modal-title">Remove tickets (date format - 2017-06-26)</h4>
+				</div>
+				<div class="modal-body">
+					<div class="form-group row">
+						<div class="col-sm-12">
+							<span>Select doctor:</span>
+							<select id="removeTicketsDoctor" class="form-control">
+								<option value="1">Educational</option>
+								<option value="0">Medical</option>
+							</select>
+						</div>
+						<div class="col-sm-12">
+							<label for="removeTicketDate">Date (for all leave blank):</label>
+							<input id="removeTicketDate" name="removeTicketDate" placeholder="Date" type="text" class="form-control" maxlength="2" />
+						</div>       
+					</div>
+					<div class="alert alert-danger px-2" style="display:none" id="error-remove-tickets">Error occured during removing tickets. Please, refresh page and try later.</div>
+				</div>
+				<div class="modal-footer">
+					<a class="btn btn-sm btn-primary pull-right" onclick="addEducationalRequest();">Remove tickets</a>
+					<button type="button" class="btn btn-sm btn-default" data-dismiss="modal"><span class="glyphicon glyphicon-remove"></span>&nbsp;Close</button>
+				</div>
+			</div>
+		</div>
+	</div>
+	<!-- Modal -->
+<!--
+	<div id="doctorModal" class="modal fade" role="dialog">
+		<div class="modal-dialog">
+			<div class="modal-content">
+				<div class="modal-header">
+					<button type="button" class="close" data-dismiss="modal">&times;</button>
+					<h4 class="modal-title">Add doctor</h4>
+				</div>
+				<div class="modal-body">
+					<div class="row">
+					<form method="POST" class="form-signin" action="#" th:action="@{/profile/update}" th:object="${userForm}">
+						<div th:class="${#fields.errors('*')} ? 'form-group has-error' : 'form-group'">
+							<input id="username" name="username" th:field="*{username}" placeholder="User name" type="text" autofocus="true" class="form-control" th:attr="value=${userForm.username}"/>
+							<span th:if="${#fields.hasErrors('username')}" th:errors="*{username}"></span>
+						</div>
+
+						<div th:class="${#fields.errors('*')} ? 'form-group has-error' : 'form-group'">
+							<input id="password" name="password" th:field="*{password}" placeholder="Password" type="password" class="form-control" />
+							<span th:if="${#fields.hasErrors('password')}" th:errors="*{password}"></span>
+						</div>
+
+						<div th:class="${#fields.errors('*')} ? 'form-group has-error' : 'form-group'">
+							<input id="passwordConfirm" name="passwordConfirm" th:field="*{passwordConfirm}" placeholder="Confirm password" type="password" class="form-control" />
+							<span th:if="${#fields.hasErrors('passwordConfirm')}" th:errors="*{passwordConfirm}"></span>
+						</div>
+
+						<div th:class="${#fields.errors('*')} ? 'form-group has-error' : 'form-group'">
+							<input id="fullName" name="fullName" th:field="*{fullName}" placeholder="Full name" type="text" class="form-control" th:attr="value=${userForm.fullName}"/>
+							<span th:if="${#fields.hasErrors('fullName')}" th:errors="*{fullName}"></span>
+						</div>
+
+						<div th:class="${#fields.errors('*')} ? 'form-group has-error' : 'form-group'">
+							<input id="email" name="email" th:field="*{email}" placeholder="Email" type="text" class="form-control" th:attr="value=${userForm.email}" />
+							<span th:if="${#fields.hasErrors('email')}" th:errors="*{email}"></span>
+						</div>
+						
+						<div th:class="${#fields.errors('*')} ? 'form-group has-error' : 'form-group'">
+							<input id="position" name="position" th:field="*{position}" placeholder="Position" type="text" class="form-control" th:attr="value=${userForm.position}" />
+							<span th:if="${#fields.hasErrors('position')}" th:errors="*{position}"></span>
+						</div>
+						
+						<div th:class="${#fields.errors('*')} ? 'form-group has-error' : 'form-group'">
+							<input id="summary" name="summary" th:field="*{summary}" placeholder="Summary" type="text" class="form-control" maxlength="16" th:attr="value=${userForm.summary}" />
+							<span th:if="${#fields.hasErrors('summary')}" th:errors="*{summary}"></span>
+						</div>
+					</form>
+					<div class="alert alert-danger px-2" style="display:none" id="error-add-doctor-empty">You must fill all fields!</div>
+					<div class="alert alert-danger px-2" style="display:none" id="error-add-doctor">Error occured during adding doctor. Please, refresh page and try later.</div>
+					</div>
+				</div>
+				<div class="modal-footer">
+					<a class="btn btn-sm btn-primary pull-right" onclick="addEducationalRequest();" data-dismiss="modal">Add doctor</a>
+					<button type="button" class="btn btn-sm btn-default" data-dismiss="modal"><span class="glyphicon glyphicon-remove"></span>&nbsp;Close</button>
+				</div>
+			</div>
+		</div>
+	</div>-->
+	<!-- Modal -->
+	<div id="feedbackModal" class="modal fade" role="dialog">
+				<div class="modal-dialog">
+					<!-- Modal content-->
+					<div class="modal-content">
+						<div class="modal-header">
+							<button type="button" class="close" data-dismiss="modal" onlick="modalFeedbackClean();">&times;</button>
+								<h4 class="modal-title">Add feedback</h4>
+						</div>
+						<div class="modal-body">
+							<div class="form-group">
+								<div class="row">
+									<div class="col-sm-12">
+										<input name="new-feedback-text" type="text" class="form-control" />
+									</div>
+								</div>
+							</div>
+							<div>
+								<div class="alert alert-success px-2" style="display:none;" id="success-feedback">Feedback successfully saved!</div>
+								<div class="alert alert-danger px-2" style="display:none;" id="error-feedback">Error occurred during saving feedback. Please, check that text not empty or refresh page and try later.</div>
+							</div>
+						</div>
+						<div class="modal-footer">
+							<a class="btn btn-sm btn-primary pull-right" onclick="saveFeedback();">Save</a>
+							<button type="button" class="btn btn-sm btn-default" data-dismiss="modal" onlick="modalFeedbackClean();"><span class="glyphicon glyphicon-remove"></span>&nbsp;Close</button>
+						</div>
+					</div>
+				</div>
+	</div>
+	<!-- Modal -->
+	<div id="appointmentModal" class="modal fade" role="dialog">
+		<div class="modal-dialog">
+			<!-- Modal content-->
+			<div class="modal-content">
+				<div class="modal-header">
+					<button type="button" class="close" data-dismiss="modal" onlick="modalAppointmentClean();">&times;</button>
+					<h4 class="modal-title">Make appointment (date format - 2017-10-12 10:00)</h4>
+				</div>
+				<div class="modal-body">
+					<div class="form-group">
+						<div class="row">
+							<div class="col-sm-12">
+								<input name="appointment-date" type="text" class="form-control" />
+							</div>
+						</div>
+					</div>
+					<div>
+						<div class="alert alert-success px-2" style="display:none;" id="success-appointment">Appointment successfully saved!</div>
+						<div class="alert alert-danger px-2" style="display:none;" id="error-appointment">Error occurred during saving appointment. Please, check that date is valid or refresh page and try later.</div>
+					</div>
+				</div>
+				<div class="modal-footer">
+					<a class="btn btn-sm btn-primary pull-right" onclick="makeAppointment(this);">Save</a>
+					<button type="button" class="btn btn-sm btn-default" data-dismiss="modal" onlick="modalAppointmentClean();"><span class="glyphicon glyphicon-remove"></span>&nbsp;Close</button>
+				</div>
+			</div>
+		</div>
+	</div>
+	<!-- Modal -->
+	<div id="requestModal" class="modal fade" role="dialog" th:if="${user.isCitizen()}">
+					<div class="modal-dialog">
+						<!-- Modal content-->
+						<div class="modal-content">
+							<div class="modal-header">
+								<button type="button" class="close" data-dismiss="modal">&times;</button>
+									<h4 class="modal-title">Add educational request</h4>
+							</div>
+							<div class="modal-body">
+								<div class="form-group">
+									<div class="row">
+										<div class="col-sm-12">
+											<span>Select child:</span>
+											<select id="request-child" class="form-control">
+												<th:block th:each="child : ${user.childs}">
+													<option th:text="${child.fullName + '(' + child.birthCertificate + ')'}" th:attr="value=${child.id}"></option>
+												</th:block>
+											</select>
+										</div>
+										<div class="col-sm-12">
+											<span>Select class:</span>
+											<select id="request-class" class="form-control">
+												<th:block th:each="s : ${institution.listSeats}">
+													<option th:text="${s.classNumber}" th:attr="value=${s.classNumber}"></option>
+												</th:block>
+											</select>
+										</div>
+									</div>
+								</div>
+								<div>
+									<div class="alert alert-success px-2" style="display:none" id="success-request">Request successfully saved!</div>
+									<div class="alert alert-danger px-2" style="display:none" id="error-request">Error occured during saving educational request. May be all seats in class are busy! Or request in institution already exists or child already enrolled in some institution! Child can be enrolled just in one institution! Please, select options or refresh page and try later.</div>
+								</div>
+							</div>
+							<div class="modal-footer">
+								<a class="btn btn-sm btn-primary pull-right" onclick="addEducationalRequest();">Make request</a>
+								<button type="button" class="btn btn-sm btn-default" data-dismiss="modal" obclick="jQuery('#success-request').hide();jQuery('#error-request').hide();"><span class="glyphicon glyphicon-remove"></span>&nbsp;Close</button>
+							</div>
+						</div>
+					</div>
+	</div>
+				
+			<!--
+			<form method="POST" class="form-signin" action="#" th:action="@{/profile/update}" th:object="${userForm}">
+				<h2 class="form-heading">Edit information</h2>
+				<div class="form-group">
+					<input id="title" name="title" placeholder="Title" type="text" autofocus="true" class="form-control" th:attr="value=${institution.title}"/>
+				</div>
+				<div class="form-group">
+					<input id="city" name="city" placeholder="City" type="text" autofocus="true" class="form-control" th:attr="value=${institution.city}"/>
+				</div>
+				<div class="form-group">
+					<input id="district" name="district" placeholder="District" type="text" autofocus="true" class="form-control" th:attr="value=${institution.district}"/>
+				</div>
+				<div class="form-group">
+					<input id="address" name="address" placeholder="Address" type="text" autofocus="true" class="form-control" th:attr="value=${institution.address}"/>
+				</div>
+				<div class="form-group">
+					<input id="telephone" name="telephone" placeholder="Telephone" type="text" autofocus="true" class="form-control" th:attr="value=${institution.telephone}"/>
+				</div>
+				<div class="form-group">
+					<input id="fax" name="fax" placeholder="Fax" type="text" autofocus="true" class="form-control" th:attr="value=${institution.fax}"/>
+				</div>
+				<button class="btn btn-sm btn-primary btn-block" type="button" onclick="saveInformation();">Save</button>
+				<div class="alert alert-success px-2" style="display:none;" id="success-seats">Changes are saved!</div>
+				<div class="alert alert-danger px-2" style="display:none" id="error-seats">Error occured during saving seats information. Please, refresh page and try later.</div>
+			</form>
+			-->
+</body>
+</html>

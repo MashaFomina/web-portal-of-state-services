@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="utf-8"/>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <meta name="description" content=""/>
+    <meta name="author" content=""/>
+
+    <title>Profile</title>
+
+    <link href="/assets/bootstrap-3.3.7-dist/css/bootstrap.min.css" rel="stylesheet" />
+    <link href="/assets/css/styles.css" rel="stylesheet" />
+    <script src="/assets/jquery-3.1.0.min.js"></script>
+    <script src="/assets/bootstrap-3.3.7-dist/js/bootstrap.min.js"></script>
+</head>
+<body>
+<nav class="navbar navbar-inverse">
+  <div class="container-fluid">
+    <div class="navbar-header">
+      <a class="navbar-brand" href="#">Portal of state services</a>
+    </div>
+    <ul class="nav navbar-nav">
+      <li class="active"><a href="#">Profile</a></li>
+      <li><a href="#">Institutions</a></li>
+	  <li><a href="#">Tickets</a></li>
+	  <li><a href="#">Childs</a></li>
+	  <li><a href="#">Educational requests</a></li>
+    </ul>
+	<ul class="nav navbar-nav navbar-right">
+      <li><a href="#"><span class="glyphicon glyphicon-log-out"></span>&nbsp;Logout</a></li>
+    </ul>
+  </div>
+</nav>
+<div class="container">
+	<div class="row">
+		<div class="col-md-5">
+			<form method="POST" class="form-signin" action="#" th:action="@{/profile/update}" th:object="${userForm}">
+				<h2 class="form-signin-heading">Edit profile</h2>
+				<div th:class="${#fields.errors('*')} ? 'form-group has-error' : 'form-group'">
+					<input id="username" name="username" th:field="*{username}" placeholder="User name" type="text" autofocus="true" class="form-control" th:attr="value=${userForm.username}"/>
+					<span th:if="${#fields.hasErrors('username')}" th:errors="*{username}"></span>
+				</div>
+
+				<div th:class="${#fields.errors('*')} ? 'form-group has-error' : 'form-group'">
+					<input id="password" name="password" th:field="*{password}" placeholder="Password" type="password" class="form-control" />
+					<span th:if="${#fields.hasErrors('password')}" th:errors="*{password}"></span>
+				</div>
+
+				<div th:class="${#fields.errors('*')} ? 'form-group has-error' : 'form-group'">
+					<input id="passwordConfirm" name="passwordConfirm" th:field="*{passwordConfirm}" placeholder="Confirm password" type="password" class="form-control" />
+					<span th:if="${#fields.hasErrors('passwordConfirm')}" th:errors="*{passwordConfirm}"></span>
+				</div>
+
+				<div th:class="${#fields.errors('*')} ? 'form-group has-error' : 'form-group'">
+					<input id="fullName" name="fullName" th:field="*{fullName}" placeholder="Full name" type="text" class="form-control" th:attr="value=${userForm.fullName}"/>
+					<span th:if="${#fields.hasErrors('fullName')}" th:errors="*{fullName}"></span>
+				</div>
+
+				<div th:class="${#fields.errors('*')} ? 'form-group has-error' : 'form-group'">
+					<input id="email" name="email" th:field="*{email}" placeholder="Email" type="text" class="form-control" th:attr="value=${userForm.email}" />
+					<span th:if="${#fields.hasErrors('email')}" th:errors="*{email}"></span>
+				</div>
+				
+				<div th:class="${#fields.errors('*')} ? 'form-group has-error' : 'form-group'">
+					<input id="passport" name="passport" th:field="*{passport}" placeholder="Passport" type="text" class="form-control" maxlength="10" th:attr="value=${userForm.passport}" />
+					<span th:if="${#fields.hasErrors('policy')}" th:errors="*{passport}"></span>
+				</div>
+				
+				<div th:class="${#fields.errors('*')} ? 'form-group has-error' : 'form-group'">
+					<input id="policy" name="policy" th:field="*{policy}" placeholder="Policy" type="text" class="form-control" maxlength="16" th:attr="value=${userForm.policy}" />
+					<span th:if="${#fields.hasErrors('policy')}" th:errors="*{policy}"></span>
+				</div>
+
+				<div th:class="${#fields.errors('*')} ? 'form-group has-error' : 'form-group'">
+					<input id="birthDate" name="birthDate" th:field="*{birthDate}" placeholder="Birth date (format: 1995-10-11)" type="text" class="form-control" maxlength="10" th:text="${#dates.format(userForm.birthDate,'yyyy-MM-dd')}" />
+					<span th:if="${#fields.hasErrors('birthDate')}" th:errors="*{birthDate}"></span>
+				</div>
+				
+				<button class="btn btn-lg btn-primary btn-block" type="submit">Submit</button>
+			</form>
+		</div>
+		<div class="col-md-7">
+			<h2 class="form-signin-heading">Notifications</h2>
+			<div class="table-notifications">
+				<table class="table table-fixed">
+					<thead>
+						<tr>
+							<th class="col-xs-5">Date</th>
+							<th class="col-xs-7">Noification</th>
+						</tr>
+					</thead>
+					<tbody>
+					<th:block th:each="notification : ${userForm.notifications}">
+						<tr>
+							<td class="col-xs-5" th:text="${notification.date}"></td>
+							<td class="col-xs-7" th:text="${notification.notification}"></td>
+				  		</tr>
+					</th:block>
+					</tbody>
+				</table>
+			</div>
+		</div>
+	</div>
+</div>
+</body>
+</html>

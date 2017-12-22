@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="utf-8"/>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <meta name="description" content=""/>
+    <meta name="author" content=""/>
+
+    <title>Institutions</title>
+
+    <!--<link href="/assets/bootstrap-3.3.7-dist/css/bootstrap.min.css" rel="stylesheet" />
+    <link href="/assets/css/styles.css" rel="stylesheet" />
+    <script src="/assets/jquery-3.1.0.min.js"></script>
+    <script src="/assets/bootstrap-3.3.7-dist/js/bootstrap.min.js"></script>-->
+	<link href="../../static/assets/bootstrap-3.3.7-dist/css/bootstrap.min.css" rel="stylesheet" />
+    <link href="../../static/assets/css/styles.css" rel="stylesheet" />
+    <script src="../../static/assets/jquery-3.1.0.min.js"></script>
+    <script src="../../static/assets/bootstrap-3.3.7-dist/js/bootstrap.min.js"></script>
+	<script>
+        function removeChildInfo(elem) {
+			console.log("remove id: " + jQuery(elem).find("input[name=id]").val());	
+			var errorElem = '<div class="alert alert-danger alert-dismissable"><a href="#" class="close" data-dismiss="alert" aria-label="close">×</a>Error occured during removing child. Please, refresh page and try later.</div>';
+			jQuery(elem).parent().parent().find("td:eq(1)").append(errorElem);
+		}
+		jQuery(document).ready(function() {
+			$('#type').on('change', function() {
+				console.log("type: " + this.value);
+				var cityEl = $('#city');
+				cityEl.hide();
+				$('#district').hide();
+				cityEl.append($('<option>', {
+					value: 1,
+					text: 'My option'
+				}));
+				cityEl.append($('<option>', {
+					value: 2,
+					text: 'My option 2'
+				}));
+				cityEl.show();
+			})
+			$('#city').on('change', function() {
+				console.log("type: " + $('#type').val());
+				console.log("city: " + $('#city').val());
+				var districtEl = $('#district');
+				districtEl.hide();
+				districtEl.append($('<option>', {
+					value: 1,
+					text: 'My district 1'
+				}));
+				districtEl.append($('<option>', {
+					value: 2,
+					text: 'My district 2'
+				}));
+				districtEl.show();
+			})
+		});
+		function search() {
+			var tBody = $(".search-results tbody");
+			tBody.html("");
+			$('.search-results').show();
+									
+			var title = '<a href="/institutions?id=' + '1' + '">' + 'Title' + '</a>';
+            var telephone = 'telephone';
+			var fax = 'fax';
+			var address = 'address';
+            var markup = '<tr><td class="col-xs-4">' + title + '</td><td class="col-xs-2">' + telephone + '</td><td class="col-xs-2">' + fax + '</td><td class="col-xs-4">' + address + '</td></tr>';
+            $("table tbody").append(markup);
+		}
+	</script>
+</head>
+<body>
+<nav class="navbar navbar-inverse">
+  <div class="container-fluid">
+    <div class="navbar-header">
+      <a class="navbar-brand" href="#">Portal of state services</a>
+    </div>
+    <ul class="nav navbar-nav">
+      <li class="#"><a href="#">Profile</a></li>
+      <li><a href="active">Institutions</a></li>
+	  <li><a href="#">Tickets</a></li>
+	  <li><a href="#">Childs</a></li>
+	  <li><a href="#">Educational requests</a></li>
+    </ul>
+	<ul class="nav navbar-nav navbar-right">
+      <li><a href="#"><span class="glyphicon glyphicon-log-out"></span>&nbsp;Logout</a></li>
+    </ul>
+  </div>
+</nav>
+<div class="container">
+	<div class="row form-institution-search">
+		<form method="POST" action="#" th:action="@{/registration}" th:object="${userForm}" class="form-horizontal">
+				<h2 class="form-heading text-center">Search</h2>
+				<div class="form-group">
+					<div class="col-sm-4">
+						<select id="type" class="form-control">
+							<option value="1">Educational</option>
+							<option value="0">Medical</option>
+					   </select>
+					</div>       
+					<div class="col-sm-4">
+						<select id="city" class="form-control">
+					   </select>
+					</div>
+					<div class="col-sm-3">
+						<select id="district" class="form-control">
+						</select>
+					</div>
+					<div class="col-sm-1">
+						<button class="btn btn-sm btn-primary" type="button" onclick="search();">Search</button>
+					</div>
+				</div>		
+				<div class="alert alert-danger px-2" style="display:none" id="error">Error occured. Please, refresh page and try later.</div>
+		</form>
+	</div>
+	<hr>
+	<div class="row search-results">
+			<h2 class="form-signin-heading text-center">Institutions</h2>
+			<div>
+				<table class="table table-fixed">
+					<thead>
+						<tr>
+							<th class="col-xs-4">Title</th>
+							<th class="col-xs-2">Telephone</th>
+							<th class="col-xs-2">Fax</th>
+							<th class="col-xs-4">Address</th>
+						</tr>
+					</thead>
+					<tbody>
+					</tbody>
+				</table>
+		</div>
+	</div>
+</div>
+</body>
+</html>

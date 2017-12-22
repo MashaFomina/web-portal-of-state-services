@@ -57,6 +57,9 @@ public class MedicalInstitution extends Institution {
         this.tickets = tickets;
     }
 
+    @Transient
+    public boolean isEdu() { return false; }
+
     public void addDoctor(Doctor doctor) throws NoRightsException {
         if (!doctor.getInstitution().equals(this)) {
             throw new NoRightsException("You have no ability to add doctor of other institution to this institution!");

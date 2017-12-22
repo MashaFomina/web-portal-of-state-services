@@ -5,5 +5,5 @@ import portal.model.institutions.MedicalInstitution;
 import javax.transaction.Transactional;
 
 @Transactional
-public interface MedicalInstitutionRepository extends InstitutionRepository<MedicalInstitution> {
+public interface MedicalInstitutionRepository extends InstitutionBaseRepository<MedicalInstitution> {
 }

@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="utf-8"/>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <meta name="description" content=""/>
+    <meta name="author" content=""/>
+
+    <title>Childs</title>
+
+    <link href="/assets/bootstrap-3.3.7-dist/css/bootstrap.min.css" rel="stylesheet" />
+    <link href="/assets/css/styles.css" rel="stylesheet" />
+    <script src="/assets/jquery-3.1.0.min.js"></script>
+    <script src="/assets/bootstrap-3.3.7-dist/js/bootstrap.min.js"></script>
+	<script th:inline="javascript">
+		/*<![CDATA[*/
+		var csrfName = [[${_csrf.parameterName}]];
+		var csrfValue = [[${_csrf.token}]];
+        function removeChildInfo(elem) {
+            $.ajax({
+                type : "GET",
+                url : "/remove_child",
+                data: {
+                    "child_id": jQuery(elem).find("input[name=id]").val()
+                },
+                timeout : 100000,
+                success : function() {
+                    jQuery(elem).parent().parent().remove();
+                },
+                error : function() {
+                    var errorElem = '<div class="alert alert-danger alert-dismissable"><a href="#" class="close" data-dismiss="alert" aria-label="close">×</a>Error occured. Please, refresh page and try later.</div>';
+                    jQuery(elem).parent().parent().find("td:eq(1)").append(errorElem);
+                }
+            });
+		}
+        function saveChildInfo() {
+            var fullName = jQuery("#fullName").val();
+            var birthCertificate = jQuery("#birthCertificate").val();
+            var birthDate = jQuery("#birthDate").val();
+            if (fullName.length > 0 && birthCertificate.length > 0 && birthDate.length > 0) {
+                jQuery("#error-empty").hide();
+                var form = {
+                    "fullName": fullName,
+                    "birthCertificate": birthCertificate,
+                    "birthDate": birthDate,
+					csrfName: csrfValue
+                };
+                form[csrfName] = csrfValue;
+                $.ajax({
+                    type: "POST",
+                    contentType: 'application/x-www-form-urlencoded;',
+                    url: "/add_child",
+                    data: form,
+                    timeout: 100000,
+                    success: function (data) {
+                        jQuery("#error").hide();
+                        var markup = '<tr><td class="col-xs-4">' + fullName + '</td><td class="col-xs-4">' + birthCertificate + '</td><td class="col-xs-3">' + birthDate + '</td><td><a class="btn btn-sm btn-primary" onclick="removeChildInfo(this);"><span class="glyphicon glyphicon-remove"></span><input name="id" type="hidden" value="' + data.id + '" /></a></td></tr>';
+                        $("#child-table tbody").prepend(markup);
+                    },
+                    error: function () {
+                        jQuery("#error").show();
+                    }
+                });
+            }
+            else {
+                jQuery("#error-empty").show();
+			}
+        }
+		/*]]>*/
+	</script>
+</head>
+<body>
+<nav class="navbar navbar-inverse">
+  <div class="container-fluid">
+    <div class="navbar-header">
+      <a class="navbar-brand" href="#">Portal of state services</a>
+    </div>
+    <ul class="nav navbar-nav">
+      <li><a href="#">Profile</a></li>
+      <li><a href="#">Institutions</a></li>
+	  <li><a href="#">Tickets</a></li>
+	  <li class="active"><a href="#">Childs</a></li>
+	  <li><a href="#">Educational requests</a></li>
+    </ul>
+	<ul class="nav navbar-nav navbar-right">
+      <li><a href="#"><span class="glyphicon glyphicon-log-out"></span>&nbsp;Logout</a></li>
+    </ul>
+  </div>
+</nav>
+<div class="container">
+	<div class="row form-add-child">
+		<form method="POST" class="form-horizontal">
+				<h2 class="form-heading text-center">Add information about child</h2>
+				<div class="form-group">
+					<div class="col-sm-4">
+						<label for="fullName">Full name:</label>
+						<input id="fullName" name="fullName" placeholder="Full name" type="text" class="form-control" />
+					</div>       
+					<div class="col-sm-4">
+						<label for="birthCertificate">Birth certificate:</label>
+						<input id="birthCertificate" name="birthCertificate" placeholder="Birth certificate" type="text" class="form-control" maxlength="10" />
+					</div>
+					<div class="col-sm-3">
+						<label for="birthDate">Birth date:</label>
+						<input id="birthDate" name="birthDate" placeholder="Birth date (format: 1995-10-11)" type="text" class="form-control" maxlength="10" />
+					</div>
+					<div class="col-sm-1">
+						<button class="btn btn-sm btn-primary" type="button" onclick="saveChildInfo();">Add</button>
+					</div>
+				</div>
+				<div class="alert alert-danger px-2" style="display:none" id="error-empty">You must fill all fields!</div>
+				<div class="alert alert-danger px-2" style="display:none" id="error">Error occured during adding child. Child with this birth certificate may be already exists or invalid birth date or connect error! Please, refresh page and try later.</div>
+		</form>
+	</div>
+	<hr></hr>
+	<div class="row" id="child-table">
+			<h2 class="form-signin-heading text-center">Childs</h2>
+			<div>
+				<table class="table table-fixed">
+					<thead>
+						<tr>
+							<th class="col-xs-4">Full name</th>
+							<th class="col-xs-4">Birth certificate</th>
+							<th class="col-xs-3">Birth date</th>
+							<th></th>
+						</tr>
+					</thead>
+					<tbody>
+					<th:block th:each="child : ${childs}">
+						<tr>
+							<td class="col-xs-4" th:text="${child.fullName}"></td>
+							<td class="col-xs-4" th:text="${child.birthCertificate}"></td>
+							<td class="col-xs-3" th:text="${#dates.format(child.birthDate,'yyyy-MM-dd')}"></td>
+							<td>
+								<a class="btn btn-sm btn-primary" onclick="removeChildInfo(this);">
+									<span class="glyphicon glyphicon-remove"></span>
+									<input name="id" type="hidden" th:attr="value=${child.id}" />
+								</a>
+							</td>
+						</tr>
+					</th:block>
+					</tbody>
+				</table>
+			</div>
+	</div>
+</div>
+</body>
+</html>

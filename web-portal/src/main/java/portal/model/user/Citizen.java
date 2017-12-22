@@ -103,14 +103,14 @@ public class Citizen extends User {
         }
     }
 
-    public boolean createChildInfo(String fullName, String birthCertificate, Date birthDate) {
+    public Child createChildInfo(String fullName, String birthCertificate, Date birthDate) {
         Child child = new Child(this, fullName, birthCertificate, birthDate);
         Date currentDate = new Date();
         if (currentDate.after(birthDate) && !childs.containsKey(child.getBirthCertificate())) {
             childs.put(child.getBirthCertificate(), child);
-            return true;
+            return child;
         }
-        return false;
+        return null;
     }
 
     @Transient
@@ -225,9 +225,9 @@ public class Citizen extends User {
             throw new NoRightsException("You have no rights to refuse this ticket because your not owner!");
         }
         ticket.refuseTicket();
-        if (tickets.contains(ticket)) {
+        /*if (tickets.contains(ticket)) {
             tickets.remove(ticket);
-        }
+        }*/
     }
 
     public void removeTicket(Ticket ticket) throws NoRightsException {

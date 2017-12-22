@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="utf-8"/>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <meta name="description" content=""/>
+    <meta name="author" content=""/>
+
+    <title>Tickets</title>
+
+    <link href="/assets/bootstrap-3.3.7-dist/css/bootstrap.min.css" rel="stylesheet" />
+    <link href="/assets/css/styles.css" rel="stylesheet" />
+    <script src="/assets/jquery-3.1.0.min.js"></script>
+    <script src="/assets/bootstrap-3.3.7-dist/js/bootstrap.min.js"></script>
+	<script>
+        function refuseTicket(elem) {
+            $.ajax({
+                type : "GET",
+                url : "/refuse_ticket",
+                data: {
+                    "ticket_id": jQuery(elem).find("input[name=id]").val()
+                },
+                timeout : 100000,
+                success : function() {
+                    jQuery(elem).parent().parent().remove();
+                },
+                error : function() {
+                    var errorElem = '<div class="alert alert-danger alert-dismissable"><a href="#" class="close" data-dismiss="alert" aria-label="close">×</a>Error occured. Please, refresh page and try later.</div>';
+                    jQuery(elem).parent().parent().find("td:eq(5)").append(errorElem);
+                }
+            });
+		}
+	</script>
+</head>
+<body>
+<nav class="navbar navbar-inverse">
+  <div class="container-fluid">
+    <div class="navbar-header">
+      <a class="navbar-brand" href="#">Portal of state services</a>
+    </div>
+    <ul class="nav navbar-nav">
+      <li><a href="#">Profile</a></li>
+      <li><a href="#">Institutions</a></li>
+	  <li class="active"><a href="#">Tickets</a></li>
+	  <li><a href="#">Childs</a></li>
+	  <li><a href="#">Educational requests</a></li>
+    </ul>
+	<ul class="nav navbar-nav navbar-right">
+      <li><a href="#"><span class="glyphicon glyphicon-log-out"></span>&nbsp;Logout</a></li>
+    </ul>
+  </div>
+</nav>
+<div class="container">
+	<div class="row">
+		<h2 class="form-heading text-center">Tickets</h2>
+		<div>
+			<table class="table table-fixed">
+				<thead>
+					<tr>
+						<th class="col-xs-1">Date</th>
+						<th class="col-xs-3">Institution</th>
+						<th class="col-xs-2">Doctor</th>
+						<th class="col-xs-2">Child</th>
+						<th class="col-xs-1">Visited</th>
+						<th class="col-xs-2">Summary</th>
+						<th></th>
+					</tr>
+				</thead>
+					<tbody>
+					<th:block th:each="ticket : ${citizen.tickets}">
+						<tr>
+							<td class="col-xs-1" th:text="${#dates.format(ticket.date,'yyyy-MM-dd HH:mm')}"></td>
+							<td class="col-xs-3" th:text="${ticket.institution.title}"></td>
+							<td class="col-xs-2" th:text="${ticket.doctor.fullName}"></td>
+							<td class="col-xs-2" th:if="${ticket.child}" th:text="${ticket.child.fullName}"></td>
+							<td class="col-xs-2" th:unless="${ticket.child}"></td>
+							<td class="col-xs-1" th:if="${ticket.visited}">yes</td>
+							<td class="col-xs-1" th:unless="${ticket.visited}">no</td>
+							<td class="col-xs-2" th:text="${ticket.summary}"></td>
+							<td>
+								<th:block th:if="${ticket.canBeRefused()}">
+									<a class="btn btn-sm btn-primary" onclick="refuseTicket(this);">
+										<span class="glyphicon glyphicon-remove">&nbsp;Refuse</span>
+										<input name="id" type="hidden" th:attr="value=${ticket.id}"/>
+									</a>
+								</th:block>
+							</td>
+						</tr>
+					</th:block>
+					</tbody>
+			</table>
+		</div>
+	</div>
+</div>
+</body>
+</html>

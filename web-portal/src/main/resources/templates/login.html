@@ -7,7 +7,7 @@
     <meta name="description" content=""/>
     <meta name="author" content=""/>
 
-    <title>Вход</title>
+    <title>Login</title>
 
     <link href="/assets/bootstrap-3.3.7-dist/css/bootstrap.min.css" rel="stylesheet" />
     <link href="/assets/css/styles.css" rel="stylesheet" />
@@ -19,16 +19,16 @@
 <div class="container">
 
     <form method="POST" action="/login" class="form-signin">
-        <h2 class="form-heading">Вход</h2>
+        <h2 class="form-heading">Login</h2>
 
         <div th:class="${#error} ? 'form-group has-error' : 'form-group'">
             <span th:text="${message}"></span>
-            <input name="username" type="text" class="form-control" placeholder="Имя пользователя" autofocus="true"/>
-            <input name="password" type="password" class="form-control" placeholder="Пароль"/>
+            <input name="username" type="text" class="form-control" placeholder="User name" autofocus="true"/>
+            <input name="password" type="password" class="form-control" placeholder="Password"/>
             <span th:text="${error}"></span>
             <input type="hidden" th:attr="value=${_csrf.token},name=${_csrf.parameterName}"/>
-            <button class="btn btn-lg btn-primary btn-block" type="submit">Войти</button>
-            <h4 class="text-center"><a href="/registration">Создать аккаунт</a></h4>
+            <button class="btn btn-lg btn-primary btn-block" type="submit">Login</button>
+            <h4 class="text-center"><a href="/registration">Registration</a></h4>
         </div>
     </form>
 </div>

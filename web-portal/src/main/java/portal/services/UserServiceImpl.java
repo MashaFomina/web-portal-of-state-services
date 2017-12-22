@@ -1,6 +1,6 @@
 package portal.services;
 
-import portal.model.user.User;
+import portal.model.user.*;
 import portal.model.user.Role;
 import portal.repositories.users.RoleRepository;
 import portal.repositories.users.UserRepository;
@@ -20,7 +20,7 @@ public class UserServiceImpl implements UserService {
     private BCryptPasswordEncoder bCryptPasswordEncoder;
 
     @Override
-    public void save(User user) {
+    public void save(Citizen user) {
         user.setPassword(bCryptPasswordEncoder.encode(user.getPassword()));
 
         HashSet<Role> roles = new HashSet<Role>();

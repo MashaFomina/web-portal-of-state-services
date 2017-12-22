@@ -7,32 +7,26 @@ import portal.model.institutions.Institution;
 import javax.persistence.*;
 import java.util.Date;
 
-@Entity
+@Entity(name = "InstitutionRepresentative")
 @Table(name = "representatives")
+//multi-level inheritance bugs
+//@SecondaryTable(name = "InstitutionRepresentative")
+//@SecondaryTable(name = "representatives")
 @DiscriminatorColumn(name = "institution.is_edu", discriminatorType=DiscriminatorType.INTEGER)
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
-public abstract class InstitutionRepresentative extends User implements InstitutionRepresentativeInterface {
-    @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
-    protected Long id;
+public class InstitutionRepresentative extends User implements InstitutionRepresentativeInterface {
     @ManyToOne
     @JoinColumn(name = "institution_id")
     protected Institution institution;
     protected boolean approved;
+
+    public InstitutionRepresentative() {}
 
     public InstitutionRepresentative(String username, String password, String fullName, String email) {
         super(username, password, fullName, email);
     }
     public InstitutionRepresentative(InstitutionRepresentative user) {
         super(user);
-    }
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
     }
 
     @Override

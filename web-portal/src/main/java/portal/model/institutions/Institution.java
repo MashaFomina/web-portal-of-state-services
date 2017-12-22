@@ -12,11 +12,11 @@ import portal.model.entities.Feedback;
 @Table(name = "institutions")
 @DiscriminatorColumn(name = "is_edu", discriminatorType=DiscriminatorType.INTEGER)
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
-/*@NamedQueries({
+@NamedQueries({
         @NamedQuery(name = "Institution.getCities", query = "select DISTINCT i.city from Institution i"),
         @NamedQuery(name = "Institution.getCityDistricts", query = "select DISTINCT i.district from Institution i where i.city = ?1"),
         @NamedQuery(name = "Institution.findAllByDistrict", query = "select i from Institution i WHERE i.city = ?1 and i.district = ?2")
-})*/
+})
 public abstract class Institution {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
@@ -97,6 +97,10 @@ public abstract class Institution {
     public String getAddress() { return address; }
 
     public void setAddress(String address) { this.address = address; }
+
+    @Transient
+    public abstract boolean isEdu();
+
 /*
     @Transient
     public boolean getIsEdu() { return isEdu; }
