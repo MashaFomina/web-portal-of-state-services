@@ -20,13 +20,13 @@
     <div class="navbar-header">
       <a class="navbar-brand" href="#">Portal of state services</a>
     </div>
-    <ul class="nav navbar-nav">
-      <li class="active"><a href="#">Profile</a></li>
-      <li><a href="#">Institutions</a></li>
-	  <li><a href="#">Tickets</a></li>
-	  <li><a href="#">Childs</a></li>
-	  <li><a href="#">Educational requests</a></li>
-    </ul>
+	<ul class="nav navbar-nav">
+		  <li class="active"><a href="/profile">Profile</a></li>
+		  <li><a href="/institutions">Institutions</a></li>
+		  <li><a href="/tickets">Tickets</a></li>
+		  <li><a href="/childs">Childs</a></li>
+		  <li><a href="/requests">Educational requests</a></li>
+	</ul>
 	<ul class="nav navbar-nav navbar-right">
       <li><a href="#"><span class="glyphicon glyphicon-log-out"></span>&nbsp;Logout</a></li>
     </ul>
@@ -73,7 +73,7 @@
 				</div>
 
 				<div th:class="${#fields.errors('*')} ? 'form-group has-error' : 'form-group'">
-					<input id="birthDate" name="birthDate" th:field="*{birthDate}" placeholder="Birth date (format: 1995-10-11)" type="text" class="form-control" maxlength="10" th:text="${#dates.format(userForm.birthDate,'yyyy-MM-dd')}" />
+					<input id="birthDate" name="birthDate" th:field="*{birthDate}" placeholder="Birth date (format: 1995-10-11)" type="text" class="form-control" maxlength="10" th:attr="value=${#dates.format(userForm.birthDate,'yyyy-MM-dd')}" />
 					<span th:if="${#fields.hasErrors('birthDate')}" th:errors="*{birthDate}"></span>
 				</div>
 				

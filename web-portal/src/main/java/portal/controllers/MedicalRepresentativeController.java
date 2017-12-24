@@ -1,6 +1,5 @@
 package portal.controllers;
 
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -8,42 +7,38 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
 import portal.errors.InvalidAppointmentDateException;
 import portal.errors.InvalidDataForSavingSeatsException;
 import portal.errors.NoFreeSeatsException;
-import portal.errors.NoRightsException;
+import portal.errors.*;
 import portal.model.entities.EduRequest;
 import portal.model.institutions.EducationalInstitution;
 import portal.model.institutions.Institution;
 import portal.model.institutions.MedicalInstitution;
-import portal.model.user.Citizen;
-import portal.model.user.EducationalRepresentative;
-import portal.model.user.InstitutionRepresentative;
-import portal.model.user.User;
+import portal.model.user.*;
+import portal.model.entities.*;
 import portal.repositories.entities.EduRequestRepository;
+import portal.repositories.entities.TicketRepository;
 import portal.repositories.institutions.EducationalInstitutionRepository;
 import portal.repositories.institutions.InstitutionBaseRepository;
 import portal.repositories.institutions.MedicalInstitutionRepository;
+import portal.repositories.users.DoctorRepository;
 import portal.repositories.users.UserRepository;
 
 import java.security.Principal;
 import java.text.DateFormat;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
-import java.text.DateFormat;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
 
 @Controller
-public class EducationalRepresentativeController {
+public class MedicalRepresentativeController  {
     Logger log = LoggerFactory.getLogger(ProjectsController.class);
     @Autowired
     private MedicalInstitutionRepository medicalInstitutionRepository;
@@ -55,10 +50,114 @@ public class EducationalRepresentativeController {
     private EducationalInstitutionRepository educationalInstitutionRepository;
     @Autowired
     private EduRequestRepository eduRequestRepository;
+    @Autowired
+    private TicketRepository ticketRepository;
+    @Autowired
+    private DoctorRepository doctorRepository;
 
 
     private DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm");
     private DateFormat dateFormatWithoutTime = new SimpleDateFormat("yyyy-MM-dd");
+
+    @RequestMapping(value = "/remove_ticket", method = RequestMethod.GET)
+    public ResponseEntity<?> removeTicket(Principal principal, @RequestParam(value = "ticket_id", required = true) Long ticket_id) {
+        try {
+            //User user = userBaseRepository.findByUsername("medr");
+            User user = userBaseRepository.findByUsername(principal.getName());
+            if (user.isMedicalRepresentative()) {
+                Ticket ticket = ticketRepository.findById(ticket_id);
+                if (ticket != null) {
+                    MedicalInstitution institution = (MedicalInstitution) ((InstitutionRepresentative) user).getInstitution();
+                    institution.deleteTicket(ticket);
+                    medicalInstitutionRepository.save(institution);
+                    return new ResponseEntity<>(HttpStatus.OK);
+                }
+            }
+        } catch (NoRightsException ex) {
+            log.debug("Error while representative remove ticket!");
+        }
+        return new ResponseEntity<Error>(HttpStatus.CONFLICT);
+    }
+
+    @RequestMapping(value = "/remove_tickets", method = RequestMethod.GET)
+    public ResponseEntity<?> removeTickets(Principal principal, @RequestParam(value = "doctorId", required = true) Long doctorId, @RequestParam(value = "date", required = true) String date) {
+        try {
+            //User user = userBaseRepository.findByUsername("medr");
+            User user = userBaseRepository.findByUsername(principal.getName());
+            if (user.isMedicalRepresentative()) {
+                Doctor doctor = doctorRepository.findById(doctorId);
+                Date ticketsDate = date.length() > 0 ? dateFormatWithoutTime.parse(date) : null;
+                if (doctor != null) {
+                    MedicalInstitution institution = (MedicalInstitution) ((InstitutionRepresentative) user).getInstitution();
+                    institution.deleteTickets(doctor, ticketsDate);
+                    medicalInstitutionRepository.save(institution);
+                    return new ResponseEntity<>(HttpStatus.OK);
+                }
+            }
+        } catch (NoRightsException | ParseException ex) {
+            log.debug("Error while representative remove tickets!");
+        }
+        return new ResponseEntity<Error>(HttpStatus.CONFLICT);
+    }
+
+    @RequestMapping(value = "/add_tickets", method = RequestMethod.GET)
+    public ResponseEntity<?> addTickets(Principal principal, @RequestParam(value = "doctorId", required = true) Long doctorId, @RequestParam(value = "startDate", required = true) String start, @RequestParam(value = "endDate", required = true) String end, @RequestParam(value = "interval", required = true) int interval) {
+        try {
+            //User user = userBaseRepository.findByUsername("medr");
+            User user = userBaseRepository.findByUsername(principal.getName());
+            Doctor doctor = doctorRepository.findById(doctorId);
+            if (user.isMedicalRepresentative() && doctor != null) {
+                Date startDate, endDate;
+                startDate = dateFormat.parse(start);
+                endDate = dateFormat.parse(end);
+                MedicalInstitution institution = (MedicalInstitution) ((InstitutionRepresentative) user).getInstitution();
+                institution.addTickets(doctor, startDate, endDate, interval);
+                medicalInstitutionRepository.save(institution);
+                return new ResponseEntity<>(HttpStatus.OK);
+            }
+        } catch (InvalidTicketsDatesException | ParseException | NoRightsException ex) {
+            log.debug("Error while representative add tickets!");
+        }
+        return new ResponseEntity<Error>(HttpStatus.CONFLICT);
+    }
+
+    @RequestMapping(value = "/add_ticket", method = RequestMethod.GET)
+    public ResponseEntity<?> addTicket(Principal principal, @RequestParam(value = "doctorId", required = true) Long doctorId, @RequestParam(value = "date", required = true) String date) {
+        try {
+            //User user = userBaseRepository.findByUsername("medr");
+            User user = userBaseRepository.findByUsername(principal.getName());
+            Doctor doctor = doctorRepository.findById(doctorId);
+            if (user.isMedicalRepresentative() && doctor != null) {
+                MedicalInstitution institution = (MedicalInstitution) ((InstitutionRepresentative) user).getInstitution();
+                Date dateTicket;
+                dateTicket = dateFormat.parse(date);
+                institution.addTicket(doctor, dateTicket);
+                medicalInstitutionRepository.save(institution);
+                return new ResponseEntity<>(HttpStatus.OK);
+            }
+        } catch (InvalidTicketsDatesException | ParseException | NoRightsException ex) {
+            log.debug("Error while representative add ticket!");
+        }
+        return new ResponseEntity<Error>(HttpStatus.CONFLICT);
+    }
+
+    @RequestMapping(value = "/remove_doctor", method = RequestMethod.GET)
+    public ResponseEntity<?> removeDoctor(Principal principal, @RequestParam(value = "doctorId", required = true) Long doctorId) {
+        try {
+            //User user = userBaseRepository.findByUsername("medr");
+            User user = userBaseRepository.findByUsername(principal.getName());
+            Doctor doctor = doctorRepository.findById(doctorId);
+            if (user.isMedicalRepresentative() && doctor != null) {
+                MedicalInstitution institution = (MedicalInstitution) ((InstitutionRepresentative) user).getInstitution();
+                institution.removeDoctor(doctor);
+                medicalInstitutionRepository.save(institution);
+                return new ResponseEntity<>(HttpStatus.OK);
+            }
+        } catch (NoRightsException ex) {
+            log.debug("Error while representative remove doctor!");
+        }
+        return new ResponseEntity<Error>(HttpStatus.CONFLICT);
+    }
 
     class responseResult {
         private Long id;
@@ -171,7 +270,7 @@ public class EducationalRepresentativeController {
     }
 */
 
-
+/*
     @RequestMapping(value = "/add_seats_info", method = RequestMethod.POST, produces = {MediaType.APPLICATION_JSON_VALUE})
     public ResponseEntity<?> saveInstitutionInformation(Principal principal, @RequestParam Long institutionId, @RequestParam int classNumber, @RequestParam int totalSeats, @RequestParam int busySeats) {
         try {
@@ -189,8 +288,7 @@ public class EducationalRepresentativeController {
 
     @RequestMapping(value = "/accept_request_repr", method = RequestMethod.GET)
     public ResponseEntity<?> acceptEduRequestByRepresentative(Principal principal, @RequestParam(value = "request_id", required = true) Long request_id) {
-        //User user = userBaseRepository.findByUsername("edur");
-        User user = userBaseRepository.findByUsername(principal.getName());
+        User user = userBaseRepository.findByUsername("edur");
         if (user.isEducationalRepresentative()) {
             try {
                 EducationalInstitution institution = (EducationalInstitution) ((InstitutionRepresentative) user).getInstitution();
@@ -209,8 +307,7 @@ public class EducationalRepresentativeController {
 
     @RequestMapping(value = "/make_appointment", method = RequestMethod.GET)
     public ResponseEntity<?> acceptEduRequestByRepresentative(Principal principal, @RequestParam(value = "request_id", required = true) Long request_id, @RequestParam(value = "date", required = true) String date) {
-        //User user = userBaseRepository.findByUsername("edur");
-        User user = userBaseRepository.findByUsername(principal.getName());
+        User user = userBaseRepository.findByUsername("edur");
         if (user.isEducationalRepresentative()) {
             try {
                 EducationalInstitution institution = (EducationalInstitution) ((InstitutionRepresentative) user).getInstitution();
@@ -232,8 +329,7 @@ public class EducationalRepresentativeController {
 
     @RequestMapping(value = "/refuse_request", method = RequestMethod.GET)
     public ResponseEntity<?> refuseEduRequestByRepresentative(Principal principal, @RequestParam(value = "request_id", required = true) Long request_id) {
-        //User user = userBaseRepository.findByUsername("edur");
-        User user = userBaseRepository.findByUsername(principal.getName());
+        User user = userBaseRepository.findByUsername("edur");
         if (user.isEducationalRepresentative()) {
             try {
                 EducationalInstitution institution = (EducationalInstitution) ((InstitutionRepresentative) user).getInstitution();
@@ -252,8 +348,7 @@ public class EducationalRepresentativeController {
 
     @RequestMapping(value = "/enroll_request", method = RequestMethod.GET)
     public ResponseEntity<?> enrollEduRequestByRepresentative(Principal principal, @RequestParam(value = "request_id", required = true) Long request_id) {
-        //User user = userBaseRepository.findByUsername("edur");
-        User user = userBaseRepository.findByUsername(principal.getName());
+        User user = userBaseRepository.findByUsername("edur");
         if (user.isEducationalRepresentative()) {
             try {
                 EducationalInstitution institution = (EducationalInstitution) ((InstitutionRepresentative) user).getInstitution();
@@ -279,4 +374,5 @@ public class EducationalRepresentativeController {
 
         return new ResponseEntity<Error>(HttpStatus.CONFLICT);
     }
+    */
 }

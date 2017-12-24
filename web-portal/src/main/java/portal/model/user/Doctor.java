@@ -72,7 +72,7 @@ public class Doctor extends User implements InstitutionRepresentativeInterface {
         Date ticketDate = start;
         Calendar cal = Calendar.getInstance();
         while (ticketDate.before(end)) {
-            institution.addTicket(new Ticket(this, ticketDate));
+            institution.addTicket(new Ticket(this, ticketDate, institution));
             cal.setTime(ticketDate);
             cal.add(Calendar.MINUTE, intervalMinutes); //minus number would decrement the minutes
             ticketDate = cal.getTime();
@@ -84,7 +84,7 @@ public class Doctor extends User implements InstitutionRepresentativeInterface {
         if (date.before(currentDate)) {
             throw new InvalidTicketsDatesException("You must determine date for ticket in future!");
         }
-        institution.addTicket(new Ticket(this, date));
+        institution.addTicket(new Ticket(this, date, institution));
     }
 
     public void deleteTicket(Ticket ticket) throws NoRightsException {

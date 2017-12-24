@@ -82,7 +82,8 @@ public class CitizenController {
     @RequestMapping(value = "/profile", method = RequestMethod.GET)
     public String getProfile(Principal principal, Model model) {
         //System.out.println("principal.getName(): " + principal.getName()); if (principal.getName() != null)
-        Citizen citizen = citizenRepository.findByUsername("citizen");
+        //Citizen citizen = citizenRepository.findByUsername("citizen");
+        Citizen citizen = citizenRepository.findByUsername(principal.getName());
         model.addAttribute("userForm", citizen);
         System.out.println("Count of notifications: " + citizen.getNotifications().size());
         return "citizen/profile";
@@ -90,7 +91,7 @@ public class CitizenController {
 
     @RequestMapping(value = "/profile/update", method = RequestMethod.POST)
     public String profileUpdate(@Valid @ModelAttribute("userForm") Citizen userForm, BindingResult bindingResult, Model model) {
-        userValidator.validate(userForm, bindingResult);
+        userValidator.validateUpdatedUser(userForm, bindingResult);
 
         if (bindingResult.hasErrors()) {
             return "citizen/profile";
@@ -103,7 +104,8 @@ public class CitizenController {
     @RequestMapping(value = "/tickets", method = RequestMethod.GET)
     public String getTickets(Principal principal, Model model) {
         //System.out.println("principal.getName(): " + principal.getName()); if (principal.getName() != null)
-        Citizen citizen = citizenRepository.findByUsername("citizen");
+        //Citizen citizen = citizenRepository.findByUsername("citizen");
+        Citizen citizen = citizenRepository.findByUsername(principal.getName());
         model.addAttribute("citizen", citizen);
         System.out.println("Count of tickets: " + citizen.getTickets().size());
         return "citizen/tickets";
@@ -114,7 +116,8 @@ public class CitizenController {
             produces = {MediaType.APPLICATION_JSON_VALUE})
     public ResponseEntity<?> refuseTicketByCitizen(Principal principal, @RequestParam(value = "ticket_id", required = true) int ticket_id) {
         try {
-            Citizen citizen = citizenRepository.findByUsername("citizen");
+            //Citizen citizen = citizenRepository.findByUsername("citizen");
+            Citizen citizen = citizenRepository.findByUsername(principal.getName());
             Ticket ticket = ticketRepository.findById(new Long(ticket_id));
             if (ticket != null) {
                 citizen.cancelTicket(ticket);
@@ -127,11 +130,39 @@ public class CitizenController {
         return new ResponseEntity<Error>(HttpStatus.CONFLICT);
     }
 
+    @RequestMapping(value = "/take_ticket",
+            method = RequestMethod.GET,
+            produces = {MediaType.APPLICATION_JSON_VALUE})
+    public ResponseEntity<?> takeTicketByCitizen(Principal principal, @RequestParam(value = "ticket_id", required = true) Long ticket_id, @RequestParam(value = "child_id", required = true) Long child_id) {
+        try {
+            //Citizen citizen = citizenRepository.findByUsername("citizen");
+            Citizen citizen = citizenRepository.findByUsername(principal.getName());
+            if (citizen != null) {
+            Ticket ticket = ticketRepository.findById(ticket_id);
+                if (ticket != null) {
+                    ticketRepository.save(ticket);
+                    if (child_id < 1) {
+                        citizen.acceptTicket(ticket);
+                    }
+                    else {
+                        Child child = childRepository.findById(child_id);
+                        citizen.acceptTicketForChild(ticket, child);
+                    }
+                    citizenRepository.save(citizen);
+                    return new ResponseEntity<>(HttpStatus.OK);
+                }
+            }
+        } catch (NoRightsException ex) {
+            log.debug("Error while citizen take ticket!");
+        }
+        return new ResponseEntity<Error>(HttpStatus.CONFLICT);
+    }
 
     @RequestMapping(value = "/requests", method = RequestMethod.GET)
     public String getRequests(Principal principal, Model model) {
         //System.out.println("principal.getName(): " + principal.getName()); if (principal.getName() != null)
-        Citizen citizen = citizenRepository.findByUsername("citizen");
+        //Citizen citizen = citizenRepository.findByUsername("citizen");
+        Citizen citizen = citizenRepository.findByUsername(principal.getName());
         model.addAttribute("requests", citizen.getEduRequests());
         System.out.println("Count of requests: " + citizen.getEduRequests().size());
         return "citizen/edu_requests";
@@ -140,7 +171,8 @@ public class CitizenController {
     @RequestMapping(value = "/remove_request", method = RequestMethod.GET)
     public ResponseEntity<?> removeEduRequest(Principal principal, @RequestParam(value = "request_id", required = true) int request_id) {
         try {
-            Citizen citizen = citizenRepository.findByUsername("citizen");
+            //Citizen citizen = citizenRepository.findByUsername("citizen");
+            Citizen citizen = citizenRepository.findByUsername(principal.getName());
             EduRequest request = eduRequestRepository.findById(new Long(request_id));
             if (request != null) {
                 citizen.removeEduRequest(request);
@@ -156,7 +188,8 @@ public class CitizenController {
     @RequestMapping(value = "/accept_request", method = RequestMethod.GET)
     public ResponseEntity<?> acceptEduRequestByParent(Principal principal, @RequestParam(value = "request_id", required = true) int request_id) {
         try {
-            Citizen citizen = citizenRepository.findByUsername("citizen");;
+            //Citizen citizen = citizenRepository.findByUsername("citizen");
+            Citizen citizen = citizenRepository.findByUsername(principal.getName());
             EduRequest request = eduRequestRepository.findById(new Long(request_id));
             if (request != null) {
                 citizen.acceptEduRequest(request);
@@ -172,7 +205,8 @@ public class CitizenController {
     @RequestMapping(value = "/childs", method = RequestMethod.GET)
     public String getChilds(Principal principal, Model model) {
         //System.out.println("principal.getName(): " + principal.getName()); if (principal.getName() != null)
-        Citizen citizen = citizenRepository.findByUsername("citizen");
+        //Citizen citizen = citizenRepository.findByUsername("citizen");
+        Citizen citizen = citizenRepository.findByUsername(principal.getName());
         model.addAttribute("childs", citizen.getChilds().values());
         System.out.println("Count of childs: " + citizen.getChilds().size());
         return "citizen/childs";
@@ -181,7 +215,8 @@ public class CitizenController {
     @RequestMapping(value = "/remove_child", method = RequestMethod.GET)
     public ResponseEntity<?> removeEduRequest1(Principal principal, @RequestParam(value = "child_id", required = true) int child_id) {
         try {
-            Citizen citizen = citizenRepository.findByUsername("citizen");
+            //Citizen citizen = citizenRepository.findByUsername("citizen");
+            Citizen citizen = citizenRepository.findByUsername(principal.getName());
             Child child = childRepository.findById(new Long(child_id));
             if (child != null) {
                 if (citizen.removeChildInfo(child)) {
@@ -199,7 +234,8 @@ public class CitizenController {
     public ResponseEntity<?> addChildInformation(Principal principal, @RequestParam String fullName, @RequestParam String birthCertificate, @RequestParam String birthDate) {
         System.out.println("addChildInformation");
         try {
-            Citizen citizen = citizenRepository.findByUsername("citizen");;
+            //Citizen citizen = citizenRepository.findByUsername("citizen");
+            Citizen citizen = citizenRepository.findByUsername(principal.getName());
             Child result = citizen.createChildInfo(fullName, birthCertificate, dateFormatWithoutTime.parse(birthDate));
             //citizenRepository.save(citizen);
             childRepository.save(result);
@@ -215,7 +251,8 @@ public class CitizenController {
     @RequestMapping(value = "/add_request", method = RequestMethod.GET)
     public ResponseEntity<?> addEduRequest(Principal principal, @RequestParam(value = "institutionId", required = true) Long institutionId, @RequestParam(value = "childId", required = true) Long childId, @RequestParam(value = "classNumber", required = true) int classNumber) {
         try {
-            Citizen citizen = citizenRepository.findByUsername("citizen");;
+            //Citizen citizen = citizenRepository.findByUsername("citizen");
+            Citizen citizen = citizenRepository.findByUsername(principal.getName());
             EducationalInstitution institution = educationalInstitutionRepository.findById(institutionId);
             Child child = childRepository.findById(childId);
             EduRequest request = citizen.createEduRequest(child, institution, classNumber);

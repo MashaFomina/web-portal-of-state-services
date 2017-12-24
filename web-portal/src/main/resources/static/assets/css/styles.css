@@ -19,7 +19,7 @@ hr {
 .form-add-child .btn-sm, .form-add-seats .btn-sm , .select-institution .btn-sm {
 	margin-top: 25px;
 }
-.table-tickets .btn-sm, .table-doctors .btn-sm {
+.table-tickets .btn-sm, .table-doctors .btn-sm, .table-request .btn-sm {
 	margin-bottom: 5px;
 	margin-right: 10px;
 }

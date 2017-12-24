@@ -42,9 +42,10 @@ public class Ticket {
 
     public Ticket() {}
 
-    public Ticket(Doctor doctor, Date date) {
+    public Ticket(Doctor doctor, Date date, MedicalInstitution institution) {
         this.doctor = doctor;
         this.date = date;
+        this.institution = institution;
     }
 
     public Ticket(Doctor doctor, Date date, boolean visited, Citizen user, String summary) {

@@ -24,6 +24,22 @@
         var csrfName = [[${_csrf.parameterName}]];
         var csrfValue = [[${_csrf.token}]];
 		jQuery(document).ready(function() {
+            $('#removeTicketsModal').on('hidden.bs.modal', function () {
+                var el = jQuery("#removeTicketsModal");
+                el.find("input[name=removeTicketDate]").val("");
+                el.find("#success-remove-tickets").hide();
+                el.find("#error-remove-tickets").hide();
+            })
+            $('#addTicketsModal').on('hidden.bs.modal', function () {
+                console.log("here!!");
+                var el = jQuery("#addTicketsModal");
+                el.find("input[name=startDate]").val("");
+                el.find("input[name=endDate]").val("");
+                el.find("input[name=interval]").val("");
+                el.find("#success-add-tickets").hide();
+                el.find("#error-add-tickets").hide();
+                el.find("#error-add-tickets-empty").hide();
+            })
 			$('#type').on('change', function() {
 				console.log("type: " + this.value);
 				var cityEl = $('#city');
@@ -90,11 +106,11 @@
 		}
         var reqId = 0;
 		var btnAppointment;
-        function saveRequestId(el) {
+        function saveRequestId(elem) {
             btnAppointment = jQuery(elem);
             reqId = jQuery(elem).parent().find("input[name=id]").val();
         }
-        function makeAppointment(this) {
+        function makeAppointment(el) {
             var appointment = $('input[name=appointment-date]').val();
             jQuery("#error-appointment").hide();
             jQuery("#success-appointment").hide();
@@ -108,10 +124,11 @@
                 timeout: 100000,
                 success: function () {
                     jQuery("#error-appointment").hide();
-                    var markup = '<tr><td class="col-xs-1">now</td><td class="col-xs-2">' + userFullName + '</td><td class="col-xs-2">' + toUserName + '</td><td class="col-xs-6">' + text + '</td><td></td></tr>';
+                    console.log($("#table-request tbody").find('tr#el-request-' + reqId + ' td:eq(1)').html());
                     $("#table-request tbody").find('tr#el-request-' + reqId + ' td:eq(1)').html(appointment);
                     jQuery("#success-appointment").show();
                     btnAppointment.remove();
+                    jQuery(el).hide();
                 },
                 error: function () {
                     jQuery("#error-appointment").show();
@@ -190,6 +207,84 @@
             }
         }
 
+        var doctorId = 0;
+        function saveDoctorId(el) {
+            doctorId = jQuery(el).parent().find('input[name=id]').val();
+		}
+        function modalAddTicketsClean() {
+            console.log("here!!");
+            var el = jQuery("#addTicketsModal");
+            el.find("input[name=startDate]").val("");
+            el.find("input[name=endDate]").val("");
+            el.find("input[name=interval]").val("");
+            el.find("#success-add-tickets").hide();
+            el.find("#error-add-tickets").hide();
+            el.find("#error-add-tickets-empty").hide();
+        }
+        function modalAddTicketClean() {
+            var el = jQuery("#addTicketModal");
+            el.find("input[name=ticketDate]").val("");
+            el.find("#success-add-ticket").hide();
+            el.find("#success-add-ticket").hide();
+            el.find("#success-add-ticket-empty").hide();
+        }
+        function addTickets() {
+            var startDate = $('input[name=startDate]').val();
+            var endDate = $('input[name=endDate]').val();
+            var interval = $('input[name=interval]').val();
+            jQuery("#error-add-tickets").hide();
+            jQuery("#success-add-tickets").hide();
+			if (startDate.length > 0 && endDate.length > 0 && interval.length) {
+                jQuery("#error-add-tickets-empty").hide();
+                $.ajax({
+                    type: "GET",
+                    url: "/add_tickets",
+                    data: {
+                        "startDate": startDate,
+                        "endDate": endDate,
+                        "interval": interval,
+                        "doctorId": doctorId
+                    },
+                    timeout: 100000,
+                    success: function () {
+                        jQuery("#success-add-tickets").show();
+                    },
+                    error: function () {
+                        jQuery("#error-add-tickets").show();
+                    }
+                });
+            }
+            else {
+                jQuery("#error-add-tickets-empty").show();
+			}
+        }
+        function addTicket() {
+            var date = $('input[name=ticketDate]').val();
+            jQuery("#error-add-ticket").hide();
+            jQuery("#success-add-ticket").hide();
+            if (date.length > 0) {
+                jQuery("#error-add-ticket-empty").hide();
+                $.ajax({
+                    type: "GET",
+                    url: "/add_ticket",
+                    data: {
+                        "date": date,
+                        "doctorId": doctorId
+                    },
+                    timeout: 100000,
+                    success: function () {
+                        jQuery("#success-add-ticket").show();
+                    },
+                    error: function () {
+                        jQuery("#error-add-ticket").show();
+                    }
+                });
+            }
+            else {
+                jQuery("#error-add-ticket-empty").show();
+            }
+        }
+
 		var toUserId = 0;
         var toUserName = 0;
 		function saveToUserId(el) {
@@ -256,7 +351,7 @@
                 },
                 timeout : 100000,
                 success : function() {
-                    jQuery(elem).parent().parent().find("td:eq(1)").html("ACCEPTED BY INSTITUTION");
+                    jQuery(elem).parent().parent().find("td:eq(2)").html("ACCEPTED BY INSTITUTION");
                     jQuery(elem).remove();
                 },
                 error : function() {
@@ -274,8 +369,8 @@
                 },
                 timeout : 100000,
                 success : function() {
-                    jQuery(elem).parent().parent().find("td:eq(1)").html("REFUSED");
-                    jQuery(elem).remove();
+                    jQuery(elem).parent().parent().find("td:eq(2)").html("REFUSED");
+                    jQuery(elem).parent().find("a").remove();
                 },
                 error : function() {
                     var errorElem = '<div class="alert alert-danger alert-dismissable"><a href="#" class="close" data-dismiss="alert" aria-label="close">×</a>Error occurred. Please, refresh page and try later.</div>';
@@ -292,12 +387,128 @@
                 },
                 timeout : 100000,
                 success : function() {
-                    jQuery(elem).parent().parent().find("td:eq(1)").html("CHILD_IS_ENROLLED");
-                    jQuery(elem).remove();
+                    jQuery(elem).parent().parent().find("td:eq(2)").html("CHILD_IS_ENROLLED");
+                    jQuery(elem).parent().find("a").remove();
                 },
                 error : function() {
                     var errorElem = '<div class="alert alert-danger alert-dismissable"><a href="#" class="close" data-dismiss="alert" aria-label="close">×</a>Error occurred.  May be no free seats! Please, refresh page and try later.</div>';
                     jQuery(elem).parent().parent().find("td:eq(5)").append(errorElem);
+                }
+            });
+        }
+        function refuseTicket(elem) {
+		    var ticketId = jQuery(elem).parent().find("input[name=id]").val();
+            $.ajax({
+                type : "GET",
+                url : "/refuse_ticket",
+                data: {
+                    "ticket_id": ticketId
+                },
+                timeout : 100000,
+                success : function() {
+                    jQuery('#table-tickets tbody tr#el-ticket-' + ticketId).find("td:eq(2)").html("");
+                    jQuery('#table-tickets tbody tr#el-ticket-' + ticketId).find("td:eq(3)").html("");
+                    jQuery(elem).parent().find("#btn-refuse").remove();
+                },
+                error : function() {
+                    var errorElem = '<div class="alert alert-danger alert-dismissable"><a href="#" class="close" data-dismiss="alert" aria-label="close">×</a>Error occurred. Please, refresh page and try later.</div>';
+                    jQuery(elem).parent().parent().find("td:eq(5)").append(errorElem);
+                }
+            });
+        }
+        var ticketId = 0;
+        function saveTicketId(el)
+        {
+            jQuery('#success-take-ticket').hide();
+            jQuery('#error-take-ticket').hide();
+            jQuery("#takeTicketModal").find("a.btn-sm").show();
+            ticketId = jQuery(el).parent().find('input[name=id]').val();
+            console.log("ticketId save: " + ticketId);
+        }
+        function takeTicket(elem) {
+            if (ticketId == 0) {
+                var ticket_id = jQuery(elem).parent().find("input[name=id]").val();
+                takeTicketAjax(ticket_id, jQuery("#takeTicketModal #take-ticket-child").val());
+            }
+            else {
+                takeTicketAjax(ticketId, jQuery("#takeTicketModal #take-ticket-child").val());
+			}
+        }
+        function takeTicketAjax(ticket_id, child_id) {
+            var row = jQuery('#table-tickets tbody tr#el-ticket-' + ticketId);
+            $.ajax({
+                type : "GET",
+                url : "/take_ticket",
+                data: {
+                    "ticket_id": ticket_id,
+                    "child_id": child_id
+                },
+                timeout : 100000,
+                success : function() {
+                    row.find("td:eq(2)").html(userFullName);
+                    if (child_id > 0)
+                    	row.find("td:eq(3)").html($( "#takeTicketModal #take-ticket-child option:selected" ).text());
+                    row.find("#btn-take").remove();
+                    jQuery("#takeTicketModal").find("a.btn-sm").hide();
+                    jQuery('#success-take-ticket').show();
+                },
+                error : function() {
+                    jQuery('#error-take-ticket').show();
+                }
+            });
+		}
+        function removeTickets() {
+            jQuery('#success-remove-tickets').hide();
+            jQuery('#error-remove-tickets').hide();
+            $.ajax({
+                type : "GET",
+                url : "/remove_tickets",
+                data: {
+                    "doctorId": jQuery("#removeTicketsModal #removeTicketsDoctor").val(),
+                    "date": jQuery("#removeTicketsModal #removeTicketDate").val()
+                },
+                timeout : 100000,
+                success : function() {
+                    jQuery('#success-remove-tickets').show();
+                    setTimeout(function() {}, 5000);
+                    location.reload();
+                },
+                error : function() {
+                    jQuery('#error-remove-tickets').show();
+                }
+            });
+        }
+		function removeTicket(el) {
+            $.ajax({
+                type : "GET",
+                url : "/remove_ticket",
+                data: {
+                    "ticket_id": jQuery(el).parent().find("input[name=id]").val()
+                },
+                timeout : 100000,
+                success : function() {
+                    jQuery(el).parent().parent().remove();
+                },
+                error : function() {
+                    var errorElem = '<div class="alert alert-danger alert-dismissable"><a href="#" class="close" data-dismiss="alert" aria-label="close">×</a>Error occured. Please, refresh page and try later.</div>';
+                    jQuery(el).parent().parent().find("td:eq(5)").append(errorElem);
+                }
+            });
+		}
+        function removeDoctor(el) {
+            $.ajax({
+                type : "GET",
+                url : "/remove_doctor",
+                data: {
+                    "doctorId": jQuery(el).parent().find("input[name=id]").val()
+                },
+                timeout : 100000,
+                success : function() {
+                    jQuery(el).parent().parent().remove();
+                },
+                error : function() {
+                    var errorElem = '<div class="alert alert-danger alert-dismissable"><a href="#" class="close" data-dismiss="alert" aria-label="close">×</a>Error occured. Please, refresh page and try later.</div>';
+                    jQuery(el).parent().parent().find("td:eq(3)").append(errorElem);
                 }
             });
         }
@@ -327,11 +538,11 @@
 <div class="container">
 	<ul class="nav nav-tabs">
 		<li class="active"><a data-toggle="tab" href="#container-information">Infornmation</a></li>
-		<th:block th:if="${user.isMedicalRepresentative() || user.isCitizen()}">
+		<th:block th:unless="${isEdu}">
 		<li><a data-toggle="tab" href="#container-doctors">Doctors</a></li>
 		<li><a data-toggle="tab" href="#container-tickets">Tickets</a></li>
 		</th:block>
-		<th:block th:if="${user.isEducationalRepresentative()}">
+		<th:block th:if="${isEdu}" th:unless="${user.isCitizen()}">
 		<li><a data-toggle="tab" href="#container-requests">Educational requests</a></li>
 		</th:block>
 	 </ul>
@@ -350,9 +561,11 @@
 							<option value="0">Medical</option>
 						</select>
 					</div>
-					<div class="col-sm-4" th:if="${not #lists.isEmpty(user.childs)}">
-						<button type="button" class="btn btn-sm btn-primary pull-right" data-toggle="modal" data-target="#requestModal">Make request</button>
-					</div>
+					<th:block th:if="${isEdu}">
+						<div class="col-sm-4" th:if="${not #lists.isEmpty(user.childs)}">
+							<button type="button" class="btn btn-sm btn-primary pull-right" data-toggle="modal" data-target="#requestModal">Make request</button>
+						</div>
+					</th:block>
 				</div>
 				</th:block>
 				
@@ -520,25 +733,27 @@
 		</div>
 	</div>
 </div>
-	<!--
+<th:block th:unless="${isEdu}">
 <div id="container-doctors" class="container tab-pane fade">
 	<h2 class="form-heading text-center">Doctors</h2>
 	<div class="row form-group select-institution">
-		<div class="col-sm-8">
+		<th:block th:if="${user.isCitizen()}">
+		<div class="col-sm-12">
 			<span>Select institution:</span>
 			<select id="type" class="form-control">
 				<option value="1">Educational</option>
 				<option value="0">Medical</option>
 			</select>
 		</div>
-		<div class="col-sm-4">
+		</th:block>
+		<th:block th:if="${user.isMedicalRepresentative()}">
+		<div class="col-sm-12">
 			<button type="button" class="btn btn-sm btn-primary pull-right" data-toggle="modal" data-target="#doctorModal">Add doctor</button>
 		</div>
+		</th:block>
 	</div>
-	<div class="row">
-		<div class="alert alert-success px-2 col-sm-12" style="" id="success-doctor">Doctor successfully saved!</div>
-		<div class="alert alert-danger px-2 col-sm-12" style="display:none" id="error-doctor">Error occured during saving educational doctor. Please, refresh page and try later.</div>
-	</div>
+	<th:block th:if="${user.isMedicalRepresentative()}">
+	</th:block>
 	<hr></hr>
 	<div class="row table-doctors">
 		<div>
@@ -553,26 +768,33 @@
 					</tr>
 				</thead>
 				<tbody>
-					<td class="col-xs-3" th:if="${request.appointment}" th:text="${#dates.format(request.appointment,'yyyy-MM-dd HH:mm')}">Full name</td>
-					<td class="col-xs-2" th:text="${request.classNumber}">Email</td>
-					<td class="col-xs-3" th:text="${request.classNumber}">Position</td>
-					<td class="col-xs-3" th:text="${request.classNumber}">Summary</td>
-					<td>
-						<a class="btn btn-sm btn-primary" onclick="removeDoctor(this);">
-							<span class="glyphicon glyphicon-remove"></span>				
-						</a>
-						<a class="btn btn-sm btn-primary" data-toggle="modal" data-target="#addTicketsModal">Add tickets</a>
-						<a class="btn btn-sm btn-primary" data-toggle="modal" data-target="#addTicketModal">Add ticket</a>
-						<input name="id" type="hidden" th:attr="value=${doctor.id}" />
-					</td>
+				<th:block th:each="doctor : ${institution.doctors}">
+					<tr>
+						<td class="col-xs-3" th:text="${doctor.fullName}"></td>
+						<td class="col-xs-2" th:text="${doctor.email}">Email</td>
+						<td class="col-xs-3" th:text="${doctor.position}">Position</td>
+						<td class="col-xs-3" th:text="${doctor.summary}">Summary</td>
+						<td>
+							<th:block th:if="${user.isMedicalRepresentative()}">
+							<a class="btn btn-sm btn-primary" onclick="removeDoctor(this);">
+								<span class="glyphicon glyphicon-remove"></span>
+							</a>
+							<a class="btn btn-sm btn-primary" data-toggle="modal" data-target="#addTicketsModal" onclick="saveDoctorId(this);">Add tickets</a>
+							<a class="btn btn-sm btn-primary" data-toggle="modal" data-target="#addTicketModal" onclick="saveDoctorId(this);">Add ticket</a>
+							<input name="id" type="hidden" th:attr="value=${doctor.id}" />
+							</th:block>
+						</td>
+					</tr>
+				</th:block>
 				</tbody>
 			</table>
 		</div>
 	</div>
 </div>
 <div id="container-tickets" class="container tab-pane fade">
-	<h2 class="form-heading text-center">Doctors</h2>
+	<h2 class="form-heading text-center">Tickets</h2>
 	<div class="row form-group select-institution">
+		<th:block th:if="${user.isCitizen()}">
 		<div class="col-sm-4">
 			<span>Select institution:</span>
 			<select id="institution" class="form-control">
@@ -580,6 +802,7 @@
 				<option value="0">Medical</option>
 			</select>
 		</div>
+		</th:block>
 		<div class="col-sm-4">
 			<span>Select doctor:</span>
 			<select id="doctor" class="form-control">
@@ -587,24 +810,21 @@
 				<option value="0">Medical</option>
 			</select>
 		</div>
-		<div class="col-sm-4">
-			<button type="button" class="btn btn-sm btn-primary pull-right" data-toggle="modal" data-target="#addTicketsModal">Add tickets</button>
-			<button type="button" class="btn btn-sm btn-primary pull-right" data-toggle="modal" data-target="#addTicketModal">Add ticket</button>
+		<th:block th:if="${user.isMedicalRepresentative()}">
+		<div class="col-sm-4" th:if="${not #lists.isEmpty(institution.doctors)}">
+			<button type="button" class="btn btn-sm btn-primary pull-right" data-toggle="modal" data-target="#removeTicketsModal">Remove tickets</button>
 		</div>
-	</div>
-	<div class="row">
-		<div class="alert alert-success px-2 col-sm-12" style="" id="success-doctor">Doctor successfully saved!</div>
-		<div class="alert alert-danger px-2 col-sm-12" style="display:none" id="error-doctor">Error occured during saving educational doctor. Please, refresh page and try later.</div>
+		</th:block>
 	</div>
 	<hr></hr>
 	<div class="row table-tickets">
 		<div>
-			<table class="table table-fixed">
+			<table class="table table-fixed" id="table-tickets">
 				<thead>
 					<tr>
 						<th class="col-xs-1">Date</th>
 						<th class="col-xs-2">Doctor</th>
-						<th class="col-xs-3">Citizen</th>
+						<th class="col-xs-2">Citizen</th>
 						<th class="col-xs-2">Child</th>
 						<th class="col-xs-1">Visited</th>
 						<th class="col-xs-2">Summary</th>
@@ -612,29 +832,45 @@
 					</tr>
 				</thead>
 					<tbody>
-					<th:block th:each="ticket : ${citizen.tickets}">
-						<tr>
+					<th:block th:each="ticket : ${institution.tickets}">
+						<tr th:attr="id=${'el-ticket-' + ticket.id}">
 							<td class="col-xs-1" th:text="${#dates.format(ticket.date,'yyyy-MM-dd HH:mm')}"></td>
 							<td class="col-xs-2" th:text="${ticket.doctor.fullName}"></td>
-							<td class="col-xs-3" th:text="${ticket.institution.title}"></td>
+							<td class="col-xs-2" th:if="${ticket.user}" th:text="${ticket.user.fullName}"></td>
+							<td class="col-xs-2" th:unless="${ticket.user}"></td>
 							<td class="col-xs-2" th:if="${ticket.child}" th:text="${ticket.child.fullName}"></td>
 							<td class="col-xs-2" th:unless="${ticket.child}"></td>
 							<td class="col-xs-1" th:if="${ticket.visited}">yes</td>
 							<td class="col-xs-1" th:unless="${ticket.visited}">no</td>
 							<td class="col-xs-2" th:text="${ticket.summary}"></td>
 							<td>
-								<th:block th:if="${ticket.canBeRefused()}">
-									<a class="btn btn-sm btn-primary" onclick="refuseTicket(this);">
-										<span class="glyphicon glyphicon-remove">&nbsp;Refuse</span>
-									</a>
-									<a class="btn btn-sm btn-primary" onclick="takeTicket(this);">
-										<span class="glyphicon glyphicon-remove">&nbsp;Take</span>
-									</a>
-									<a class="btn btn-sm btn-primary" onclick="removeTicket(this);">
-										<span class="glyphicon glyphicon-remove">&nbsp;</span>
-									</a>
-									<input name="id" type="hidden" th:attr="value=${ticket.id}"/>
+								<th:block th:if="${user.isCitizen() and ticket.canBeRefused()}">
+									<th:block th:if="${ticket.user}">
+										<th:block th:if="${ticket.user.id == user.id}">
+											<a class="btn btn-sm btn-primary" id="btn-refuse" onclick="refuseTicket(this);">
+												<span class="glyphicon glyphicon-remove">&nbsp;Refuse</span>
+											</a>
+										</th:block>
+									</th:block>
+									<th:block th:unless="${ticket.user}">
+										<th:block th:unless="${ticket.visited}">
+											<th:block th:if="${#lists.isEmpty(user.childs)}">
+												<a class="btn btn-sm btn-primary" id="btn-take" onclick="takeTicket(this);">Take</a>
+											</th:block>
+											<th:block th:if="${not #lists.isEmpty(user.childs)}">
+												<a class="btn btn-sm btn-primary" id="btn-take" onclick="saveTicketId(this);" data-toggle="modal" data-target="#takeTicketModal">
+													<span class="glyphicon glyphicon-remove">&nbsp;Take</span>
+												</a>
+											</th:block>
+										</th:block>
+									</th:block>
 								</th:block>
+								<th:block th:if="${user.isMedicalRepresentative()}">
+									<a class="btn btn-sm btn-primary" onclick="removeTicket(this);">
+										<span class="glyphicon glyphicon-remove"></span>
+									</a>
+								</th:block>
+								<input name="id" type="hidden" th:attr="value=${ticket.id}"/>
 							</td>
 						</tr>
 					</th:block>
@@ -643,7 +879,8 @@
 		</div>
 	</div>
 </div>
--->
+</th:block>
+<th:block th:if="${isEdu}">
 <th:block th:if="${user.isEducationalRepresentative()}">
 <div id="container-requests" class="container tab-pane fade">
 	<h2 class="form-heading text-center">Educational requests</h2>
@@ -666,6 +903,7 @@
 						<tr th:attr="id=${'el-request-' + request.id}">
 							<td class="col-xs-1" th:text="${#dates.format(request.creationDate,'yyyy-MM-dd')}">Date</td>
 							<td class="col-xs-2" th:if="${request.appointment}" th:text="${#dates.format(request.appointment,'yyyy-MM-dd HH:mm')}"></td>
+							<td class="col-xs-2" th:unless="${request.appointment}"></td>
 							<td class="col-xs-2" th:text="${request.status.getBeautifulText()}">Status</td>
 							<td class="col-xs-2" th:text="${request.child.fullName}"></td>
 							<td class="col-xs-1" th:text="${request.classNumber}">Class</td>
@@ -697,6 +935,7 @@
 	</div>
 </div>
 </th:block>
+</th:block>
 </div>
 	<!-- Modal -->
 	<div id="addTicketsModal" class="modal fade" role="dialog">
@@ -704,30 +943,31 @@
 			<!-- Modal content-->
 			<div class="modal-content">
 				<div class="modal-header">
-					<button type="button" class="close" data-dismiss="modal">&times;</button>
-					<h4 class="modal-title">Add tickets (date format - 2017-06-26 17:45:55)</h4>
+					<button type="button" class="close" data-dismiss="modal" onclick="modalAddTicketsClean();">&times;</button>
+					<h4 class="modal-title">Add tickets (date format - 2017-06-26 17:45)</h4>
 				</div>
 				<div class="modal-body">
 					<div class="form-group row">
 							<div class="col-sm-4">
 								<label for="startDate">Start date:</label>
-								<input id="startDate" name="startDate" placeholder="Start date" type="text" class="form-control" maxlength="2" />
+								<input id="startDate" name="startDate" placeholder="Start date" type="text" class="form-control" maxlength="16" />
 							</div>       
 							<div class="col-sm-4">
 								<label for="endDate">End date:</label>
-								<input id="endDate" name="endDate" placeholder="End date" type="text" class="form-control" maxlength="3" />
+								<input id="endDate" name="endDate" placeholder="End date" type="text" class="form-control" maxlength="16" />
 							</div>
 							<div class="col-sm-4">
 								<label for="interval">Interval in minutes:</label>
 								<input id="interval" name="interval" placeholder="Interval in minutes:" type="text" class="form-control" maxlength="3" />
 							</div>
 					</div>
+					<div class="alert alert-success px-2" style="display:none" id="success-add-tickets">Tickets successfully added!</div>
 					<div class="alert alert-danger px-2" style="display:none" id="error-add-tickets-empty">You must fill all fields!</div>
-					<div class="alert alert-danger px-2" style="display:none" id="error-add-tickets">Error occured during adding tickets. Please, refresh page and try later.</div>
+					<div class="alert alert-danger px-2" style="display:none" id="error-add-tickets">Error occured during adding tickets. Please, check correctness of data or refresh page and try later.</div>
 				</div>
 				<div class="modal-footer">
-					<a class="btn btn-sm btn-primary pull-right" onclick="addEducationalRequest();">Add tickets</a>
-					<button type="button" class="btn btn-sm btn-default" data-dismiss="modal"><span class="glyphicon glyphicon-remove"></span>&nbsp;Close</button>
+					<a class="btn btn-sm btn-primary pull-right" onclick="addTickets();">Add tickets</a>
+					<button type="button" class="btn btn-sm btn-default" data-dismiss="modal"><span class="glyphicon glyphicon-remove" onclick="modalAddTicketsClean();"></span>&nbsp;Close</button>
 				</div>
 			</div>
 		</div>
@@ -738,28 +978,29 @@
 			<!-- Modal content-->
 			<div class="modal-content">
 				<div class="modal-header">
-					<button type="button" class="close" data-dismiss="modal">&times;</button>
-					<h4 class="modal-title">Add ticket (date format - 2017-06-26 17:45:55)</h4>
+					<button type="button" class="close" data-dismiss="modal" onclick="modalAddTicketClean();">&times;</button>
+					<h4 class="modal-title">Add ticket (date format - 2017-06-26 17:45)</h4>
 				</div>
 				<div class="modal-body">
 					<div class="form-group row">
 							<div class="col-sm-12">
 								<label for="ticketDate">Ticket date:</label>
-								<input id="ticketDate" name="ticketDate" placeholder="Ticket date" type="text" class="form-control" maxlength="2" />
+								<input id="ticketDate" name="ticketDate" placeholder="Ticket date" type="text" class="form-control" maxlength="16" />
 							</div>       
 					</div>
+					<div class="alert alert-success px-2" style="display:none" id="success-add-ticket">Ticket successfully added!</div>
 					<div class="alert alert-danger px-2" style="display:none" id="error-add-ticket-empty">You must fill all fields!</div>
-					<div class="alert alert-danger px-2" style="display:none" id="error-add-ticket">Error occured during adding tickets. Please, refresh page and try later.</div>
+					<div class="alert alert-danger px-2" style="display:none" id="error-add-ticket">Error occured during adding ticket. Please, check correctness of data or refresh page and try later.</div>
 				</div>
 				<div class="modal-footer">
-					<a class="btn btn-sm btn-primary pull-right" onclick="addEducationalRequest();">Add tickets</a>
-					<button type="button" class="btn btn-sm btn-default" data-dismiss="modal"><span class="glyphicon glyphicon-remove"></span>&nbsp;Close</button>
+					<a class="btn btn-sm btn-primary pull-right" onclick="addTicket();">Add ticket</a>
+					<button type="button" class="btn btn-sm btn-default" data-dismiss="modal" onclick="modalAddTicketClean();"><span class="glyphicon glyphicon-remove"></span>&nbsp;Close</button>
 				</div>
 			</div>
 		</div>
 	</div>
 	<!-- Modal -->
-	<div id="removeTicketsModal" class="modal fade" role="dialog">
+	<div id="removeTicketsModal" class="modal fade" role="dialog" th:if="${user.isMedicalRepresentative()}">
 		<div class="modal-dialog">
 			<!-- Modal content-->
 			<div class="modal-content">
@@ -772,8 +1013,9 @@
 						<div class="col-sm-12">
 							<span>Select doctor:</span>
 							<select id="removeTicketsDoctor" class="form-control">
-								<option value="1">Educational</option>
-								<option value="0">Medical</option>
+								<th:block th:each="d : ${institution.doctors}">
+									<option th:text="${d.fullName + '(' + d.position + ')'}" th:attr="value=${d.id}"></option>
+								</th:block>
 							</select>
 						</div>
 						<div class="col-sm-12">
@@ -781,18 +1023,18 @@
 							<input id="removeTicketDate" name="removeTicketDate" placeholder="Date" type="text" class="form-control" maxlength="2" />
 						</div>       
 					</div>
-					<div class="alert alert-danger px-2" style="display:none" id="error-remove-tickets">Error occured during removing tickets. Please, refresh page and try later.</div>
+					<div class="alert alert-success px-2" style="display:none" id="success-remove-tickets">Ticket successfully removed!</div>
+					<div class="alert alert-danger px-2" style="display:none" id="error-remove-tickets">Error occured during removing tickets. Please, check correctness of data or refresh page and try later.</div>
 				</div>
 				<div class="modal-footer">
-					<a class="btn btn-sm btn-primary pull-right" onclick="addEducationalRequest();">Remove tickets</a>
+					<a class="btn btn-sm btn-primary pull-right" onclick="removeTickets();">Remove tickets</a>
 					<button type="button" class="btn btn-sm btn-default" data-dismiss="modal"><span class="glyphicon glyphicon-remove"></span>&nbsp;Close</button>
 				</div>
 			</div>
 		</div>
 	</div>
 	<!-- Modal -->
-<!--
-	<div id="doctorModal" class="modal fade" role="dialog">
+	<div id="doctorModal" class="modal fade" role="dialog" th:if="${user.isMedicalRepresentative()}">
 		<div class="modal-dialog">
 			<div class="modal-content">
 				<div class="modal-header">
@@ -800,49 +1042,43 @@
 					<h4 class="modal-title">Add doctor</h4>
 				</div>
 				<div class="modal-body">
-					<div class="row">
-					<form method="POST" class="form-signin" action="#" th:action="@{/profile/update}" th:object="${userForm}">
-						<div th:class="${#fields.errors('*')} ? 'form-group has-error' : 'form-group'">
-							<input id="username" name="username" th:field="*{username}" placeholder="User name" type="text" autofocus="true" class="form-control" th:attr="value=${userForm.username}"/>
-							<span th:if="${#fields.hasErrors('username')}" th:errors="*{username}"></span>
+					<div class="container">
+					<form method="POST">
+						<div class="form-group">
+							<input id="username" name="username" placeholder="User name" type="text" autofocus="true" class="form-control"/>
 						</div>
 
-						<div th:class="${#fields.errors('*')} ? 'form-group has-error' : 'form-group'">
-							<input id="password" name="password" th:field="*{password}" placeholder="Password" type="password" class="form-control" />
-							<span th:if="${#fields.hasErrors('password')}" th:errors="*{password}"></span>
+						<div class="form-group">
+							<input id="password" name="password" placeholder="Password" type="password" class="form-control" />
 						</div>
 
-						<div th:class="${#fields.errors('*')} ? 'form-group has-error' : 'form-group'">
-							<input id="passwordConfirm" name="passwordConfirm" th:field="*{passwordConfirm}" placeholder="Confirm password" type="password" class="form-control" />
-							<span th:if="${#fields.hasErrors('passwordConfirm')}" th:errors="*{passwordConfirm}"></span>
+						<div th:class="form-group">
+							<input id="passwordConfirm" name="passwordConfirm" placeholder="Confirm password" type="password" class="form-control" />
 						</div>
 
-						<div th:class="${#fields.errors('*')} ? 'form-group has-error' : 'form-group'">
-							<input id="fullName" name="fullName" th:field="*{fullName}" placeholder="Full name" type="text" class="form-control" th:attr="value=${userForm.fullName}"/>
-							<span th:if="${#fields.hasErrors('fullName')}" th:errors="*{fullName}"></span>
+						<div th:class="form-group">
+							<input id="fullName" name="fullName" placeholder="Full name" type="text" class="form-control" />
 						</div>
 
-						<div th:class="${#fields.errors('*')} ? 'form-group has-error' : 'form-group'">
-							<input id="email" name="email" th:field="*{email}" placeholder="Email" type="text" class="form-control" th:attr="value=${userForm.email}" />
-							<span th:if="${#fields.hasErrors('email')}" th:errors="*{email}"></span>
+						<div th:class="form-group">
+							<input id="email" name="email" placeholder="Email" type="text" class="form-control" />
 						</div>
 						
-						<div th:class="${#fields.errors('*')} ? 'form-group has-error' : 'form-group'">
-							<input id="position" name="position" th:field="*{position}" placeholder="Position" type="text" class="form-control" th:attr="value=${userForm.position}" />
-							<span th:if="${#fields.hasErrors('position')}" th:errors="*{position}"></span>
+						<div class="form-group">
+							<input id="position" name="position"  placeholder="Position" type="text" class="form-control" />
 						</div>
 						
-						<div th:class="${#fields.errors('*')} ? 'form-group has-error' : 'form-group'">
-							<input id="summary" name="summary" th:field="*{summary}" placeholder="Summary" type="text" class="form-control" maxlength="16" th:attr="value=${userForm.summary}" />
-							<span th:if="${#fields.hasErrors('summary')}" th:errors="*{summary}"></span>
+						<div th:class="form-group">
+							<input id="summary" name="summary" placeholder="Summary" type="text" class="form-control" />
 						</div>
 					</form>
-					<div class="alert alert-danger px-2" style="display:none" id="error-add-doctor-empty">You must fill all fields!</div>
+						<div class="alert alert-success px-2" style="" id="success-add-doctor">Doctor successfully saved!</div>
+						<div class="alert alert-danger px-2" style="display:none" id="error-add-doctor-empty">You must fill all fields!</div>
 					<div class="alert alert-danger px-2" style="display:none" id="error-add-doctor">Error occured during adding doctor. Please, refresh page and try later.</div>
 					</div>
 				</div>
 				<div class="modal-footer">
-					<a class="btn btn-sm btn-primary pull-right" onclick="addEducationalRequest();" data-dismiss="modal">Add doctor</a>
+					<a class="btn btn-sm btn-primary pull-right" onclick="addDoctor();" data-dismiss="modal">Add doctor</a>
 					<button type="button" class="btn btn-sm btn-default" data-dismiss="modal"><span class="glyphicon glyphicon-remove"></span>&nbsp;Close</button>
 				</div>
 			</div>
@@ -883,7 +1119,7 @@
 			<!-- Modal content-->
 			<div class="modal-content">
 				<div class="modal-header">
-					<button type="button" class="close" data-dismiss="modal" onlick="modalAppointmentClean();">&times;</button>
+					<button type="button" class="close" data-dismiss="modal" onclick="modalAppointmentClean();">&times;</button>
 					<h4 class="modal-title">Make appointment (date format - 2017-10-12 10:00)</h4>
 				</div>
 				<div class="modal-body">
@@ -901,12 +1137,13 @@
 				</div>
 				<div class="modal-footer">
 					<a class="btn btn-sm btn-primary pull-right" onclick="makeAppointment(this);">Save</a>
-					<button type="button" class="btn btn-sm btn-default" data-dismiss="modal" onlick="modalAppointmentClean();"><span class="glyphicon glyphicon-remove"></span>&nbsp;Close</button>
+					<button type="button" class="btn btn-sm btn-default" data-dismiss="modal" onclick="modalAppointmentClean();"><span class="glyphicon glyphicon-remove"></span>&nbsp;Close</button>
 				</div>
 			</div>
 		</div>
 	</div>
 	<!-- Modal -->
+	<th:block th:if="${isEdu}">
 	<div id="requestModal" class="modal fade" role="dialog" th:if="${user.isCitizen()}">
 					<div class="modal-dialog">
 						<!-- Modal content-->
@@ -921,7 +1158,7 @@
 										<div class="col-sm-12">
 											<span>Select child:</span>
 											<select id="request-child" class="form-control">
-												<th:block th:each="child : ${user.childs}">
+												<th:block th:each="child : ${user.childs.values()}">
 													<option th:text="${child.fullName + '(' + child.birthCertificate + ')'}" th:attr="value=${child.id}"></option>
 												</th:block>
 											</select>
@@ -948,7 +1185,43 @@
 						</div>
 					</div>
 	</div>
-				
+	</th:block>
+
+<!-- Modal -->
+<div id="takeTicketModal" class="modal fade" role="dialog" th:if="${user.isCitizen()}">
+	<div class="modal-dialog">
+		<!-- Modal content-->
+		<div class="modal-content">
+			<div class="modal-header">
+				<button type="button" class="close" data-dismiss="modal" obclick="jQuery('#success-take-ticket').hide();jQuery('#error-take-ticket').hide();">&times;</button>
+				<h4 class="modal-title">Take ticket</h4>
+			</div>
+			<div class="modal-body">
+				<div class="form-group">
+					<div class="row">
+						<div class="col-sm-12">
+							<span>Select child or yourself:</span>
+							<select id="take-ticket-child" class="form-control">
+								<option th:text="${'me (' + user.fullName + ')'}" value="0" selected="selected"></option>
+								<th:block th:each="child : ${user.childs.values()}">
+									<option th:text="${child.fullName}" th:attr="value=${child.id}"></option>
+								</th:block>
+							</select>
+						</div>
+					</div>
+				</div>
+				<div>
+					<div class="alert alert-success px-2" style="display:none" id="success-take-ticket">Ticket successfully taken!</div>
+					<div class="alert alert-danger px-2" style="display:none" id="error-take-ticket">Error occurred during taking ticket. Please, refresh page and try later.</div>
+				</div>
+			</div>
+			<div class="modal-footer">
+				<a class="btn btn-sm btn-primary pull-right" onclick="takeTicket(this);">Take ticket</a>
+				<button type="button" class="btn btn-sm btn-default" data-dismiss="modal" obclick="jQuery('#success-take-ticket').hide();jQuery('#error-take-ticket').hide();"><span class="glyphicon glyphicon-remove"></span>&nbsp;Close</button>
+			</div>
+		</div>
+	</div>
+</div>
 			<!--
 			<form method="POST" class="form-signin" action="#" th:action="@{/profile/update}" th:object="${userForm}">
 				<h2 class="form-heading">Edit information</h2>

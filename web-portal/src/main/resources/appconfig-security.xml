@@ -9,7 +9,7 @@
 
     <http auto-config="true">
         <intercept-url pattern="/" access="hasRole('ROLE_USER')"/>
-        <intercept-url pattern="/portal" access="hasRole('ROLE_USER')"/>
+        <intercept-url pattern="/portal" access="hasAnyRole('ROLE_CITIZEN, ROLE_EDU_REPRESENTATIVE, ROLE_MEDICAL_REPRESENTATIVE')"/>
         <form-login login-page="/login" default-target-url="/portal" authentication-failure-url="/login?error" username-parameter="username" password-parameter="password"/>
         <logout logout-success-url="/login?logout" />
     </http>

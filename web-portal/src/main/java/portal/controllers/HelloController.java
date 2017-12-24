@@ -51,8 +51,11 @@ public class HelloController {
     @RequestMapping(value = "/portal", method = RequestMethod.GET)
     public String hello(Principal principal, Model model) {
         log.debug("In HelloController..");
-        System.out.println("principal.getName(): " + principal.getName());
-        System.out.println("finded Logged In Username: " + securityService.findLoggedInUsername());
+        User user = userBaseRepository.findByUsername(principal.getName());
+        if (user.isCitizen())
+            return "redirect:/profile";
+        if (user.isMedicalRepresentative() || user.isEducationalRepresentative())
+            return ("redirect:/institutionview?id=" + ((InstitutionRepresentative) user).getInstitution().getId());
         return "hello";
     }
 
