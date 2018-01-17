@@ -17,7 +17,7 @@
         function removeRequest(elem) {
             $.ajax({
                 type : "GET",
-                url : "/remove_request",
+                url : "/citizen/remove_request",
                 data: {
                     "request_id": jQuery(elem).parent().find("input[name=id]").val()
                 },
@@ -34,7 +34,7 @@
 		function acceptRequest(elem) {
             $.ajax({
                 type : "GET",
-                url : "/accept_request",
+                url : "/citizen/accept_request",
                 data: {
                     "request_id": jQuery(elem).parent().find("input[name=id]").val()
                 },
@@ -65,8 +65,11 @@
 		  <li class="active"><a href="/requests">Educational requests</a></li>
 	</ul>
 	<ul class="nav navbar-nav navbar-right">
-      <li><a href="#"><span class="glyphicon glyphicon-log-out"></span>&nbsp;Logout</a></li>
-    </ul>
+		<li><a onclick="document.forms['logoutForm'].submit()" class="btn"><span class="glyphicon glyphicon-log-out"></span>&nbsp;Logout</a></li>
+	</ul>
+	<form id="logoutForm" method="POST" action="/logout" style="display:none">
+		<input type="hidden" th:attr="name=${_csrf.parameterName},value=${_csrf.token}"/>
+	</form>
   </div>
 </nav>
 <div class="container">

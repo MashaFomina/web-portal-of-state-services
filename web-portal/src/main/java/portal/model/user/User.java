@@ -209,6 +209,6 @@ public abstract class User {
 
     @Override
     public int hashCode() {
-        return username.hashCode();
+        return (username != null ? username.hashCode() : 0);
     }
 }

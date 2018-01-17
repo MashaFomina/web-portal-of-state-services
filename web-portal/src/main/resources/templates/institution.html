@@ -24,6 +24,14 @@
         var csrfName = [[${_csrf.parameterName}]];
         var csrfValue = [[${_csrf.token}]];
 		jQuery(document).ready(function() {
+            $('#select-doctor-tickets').on('change', function() {
+                var doctorId = jQuery('#select-doctor-tickets').val();
+                var trs = jQuery('#table-tickets tbody tr');
+                trs.show();
+                if (doctorId > 0) {
+                    trs.not('.ticket-for-doctor-' + doctorId).hide();
+                }
+            })
             $('#removeTicketsModal').on('hidden.bs.modal', function () {
                 var el = jQuery("#removeTicketsModal");
                 el.find("input[name=removeTicketDate]").val("");
@@ -31,7 +39,6 @@
                 el.find("#error-remove-tickets").hide();
             })
             $('#addTicketsModal').on('hidden.bs.modal', function () {
-                console.log("here!!");
                 var el = jQuery("#addTicketsModal");
                 el.find("input[name=startDate]").val("");
                 el.find("input[name=endDate]").val("");
@@ -40,55 +47,25 @@
                 el.find("#error-add-tickets").hide();
                 el.find("#error-add-tickets-empty").hide();
             })
-			$('#type').on('change', function() {
-				console.log("type: " + this.value);
-				var cityEl = $('#city');
-				cityEl.hide();
-				$('#district').hide();
-				cityEl.append($('<option>', {
-					value: 1,
-					text: 'My option'
-				}));
-				cityEl.append($('<option>', {
-					value: 2,
-					text: 'My option 2'
-				}));
-				cityEl.show();
-			})
-			$('#city').on('change', function() {
-				console.log("type: " + $('#type').val());
-				console.log("city: " + $('#city').val());
-				var districtEl = $('#district');
-				districtEl.hide();
-				districtEl.append($('<option>', {
-					value: 1,
-					text: 'My district 1'
-				}));
-				districtEl.append($('<option>', {
-					value: 2,
-					text: 'My district 2'
-				}));
-				districtEl.show();
-			})
+            $('#setVisitedModal').on('hidden.bs.modal', function () {
+                var el = jQuery("#setVisitedModal");
+                el.find("input[name=summary-text]").val("");
+                el.find("#success-summary").hide();
+                el.find("#error-summary").hide();
+                el.find("a.btn-sm").show();
+            })
+            $('#doctorModal').on('hidden.bs.modal', function () {
+                var el = jQuery("#doctorModal");
+                el.find("input").val("");
+                el.find("#success-add-doctor, #error-add-doctor-invalid, #error-add-doctor").hide();
+            })
 		});
-		function search() {
-			var tBody = $(".search-results tbody");
-			tBody.html("");
-			$('.search-results').show();
-									
-			var title = '<a href="/institutions?id=' + '1' + '">' + 'Title' + '</a>';
-            var telephone = 'telephone';
-			var fax = 'fax';
-			var address = 'address';
-            var markup = '<tr><td class="col-xs-4">' + title + '</td><td class="col-xs-2">' + telephone + '</td><td class="col-xs-2">' + fax + '</td><td class="col-xs-4">' + address + '</td></tr>';
-            $("table tbody").append(markup);
-		}
 		function addEducationalRequest() {
             jQuery("#error-request").hide();
             jQuery("#success-request").hide();
             $.ajax({
                 type: "GET",
-                url: "/add_request",
+                url: "/citizen/add_request",
                 data: {
                     "institutionId": institutionId,
                     "childId": $('#request-child').val(),
@@ -116,7 +93,7 @@
             jQuery("#success-appointment").hide();
             $.ajax({
                 type: "GET",
-                url: "/make_appointment",
+                url: "/edur/make_appointment",
                 data: {
                     "request_id": reqId,
                     "date": appointment
@@ -124,8 +101,7 @@
                 timeout: 100000,
                 success: function () {
                     jQuery("#error-appointment").hide();
-                    console.log($("#table-request tbody").find('tr#el-request-' + reqId + ' td:eq(1)').html());
-                    $("#table-request tbody").find('tr#el-request-' + reqId + ' td:eq(1)').html(appointment);
+                    $("#table-requests tbody").find('tr#el-request-' + reqId + ' td:eq(1)').html(appointment);
                     jQuery("#success-appointment").show();
                     btnAppointment.remove();
                     jQuery(el).hide();
@@ -234,11 +210,11 @@
             var interval = $('input[name=interval]').val();
             jQuery("#error-add-tickets").hide();
             jQuery("#success-add-tickets").hide();
-			if (startDate.length > 0 && endDate.length > 0 && interval.length) {
+			if (startDate.length > 0 && endDate.length > 0 && interval.length > 0) {
                 jQuery("#error-add-tickets-empty").hide();
                 $.ajax({
                     type: "GET",
-                    url: "/add_tickets",
+                    url: "/medr/add_tickets",
                     data: {
                         "startDate": startDate,
                         "endDate": endDate,
@@ -266,7 +242,7 @@
                 jQuery("#error-add-ticket-empty").hide();
                 $.ajax({
                     type: "GET",
-                    url: "/add_ticket",
+                    url: "/medr/add_ticket",
                     data: {
                         "date": date,
                         "doctorId": doctorId
@@ -323,7 +299,7 @@
                 $.ajax({
                     type: "POST",
                     contentType: 'application/x-www-form-urlencoded;',
-                    url: "/add_seats_info",
+                    url: "/edur/add_seats_info",
                     data: form,
                     timeout: 100000,
                     success: function (data) {
@@ -345,7 +321,7 @@
         function acceptRequest(elem) {
             $.ajax({
                 type : "GET",
-                url : "/accept_request_repr",
+                url : "/edur/accept_request_repr",
                 data: {
                     "request_id": jQuery(elem).parent().find("input[name=id]").val()
                 },
@@ -363,7 +339,7 @@
         function refuseRequest(elem) {
             $.ajax({
                 type : "GET",
-                url : "/refuse_request",
+                url : "/edur/refuse_request",
                 data: {
                     "request_id": jQuery(elem).parent().find("input[name=id]").val()
                 },
@@ -381,7 +357,7 @@
         function enrollRequest(elem) {
             $.ajax({
                 type : "GET",
-                url : "/enroll_request",
+                url : "/edur/enroll_request",
                 data: {
                     "request_id": jQuery(elem).parent().find("input[name=id]").val()
                 },
@@ -400,7 +376,7 @@
 		    var ticketId = jQuery(elem).parent().find("input[name=id]").val();
             $.ajax({
                 type : "GET",
-                url : "/refuse_ticket",
+                url : "/citizen/refuse_ticket",
                 data: {
                     "ticket_id": ticketId
                 },
@@ -425,6 +401,29 @@
             ticketId = jQuery(el).parent().find('input[name=id]').val();
             console.log("ticketId save: " + ticketId);
         }
+        function saveSetVisited() {
+            var row = jQuery('#table-tickets tbody tr#el-ticket-' + ticketId);
+            var summary = jQuery("#setVisitedModal input[name=summary-text]").val();
+            $.ajax({
+                type : "GET",
+                url : "/medr/set_ticket_visited",
+                data: {
+                    "ticket_id": ticketId,
+                    "summary": summary
+                },
+                timeout : 100000,
+                success : function() {
+                    row.find("td:eq(4)").html('yes');
+					row.find("td:eq(5)").html(summary);
+                    row.find("#btn-set-visited").remove();
+                    jQuery("#setVisitedModal").find("a.btn-sm").hide();
+                    jQuery('#success-summary').show();
+                },
+                error : function() {
+                    jQuery('#error-summary').show();
+                }
+            });
+        }
         function takeTicket(elem) {
             if (ticketId == 0) {
                 var ticket_id = jQuery(elem).parent().find("input[name=id]").val();
@@ -435,10 +434,10 @@
 			}
         }
         function takeTicketAjax(ticket_id, child_id) {
-            var row = jQuery('#table-tickets tbody tr#el-ticket-' + ticketId);
+            var row = jQuery('#table-tickets tbody tr').find('#el-ticket-' + ticketId);
             $.ajax({
                 type : "GET",
-                url : "/take_ticket",
+                url : "/citizen/take_ticket",
                 data: {
                     "ticket_id": ticket_id,
                     "child_id": child_id
@@ -460,18 +459,26 @@
         function removeTickets() {
             jQuery('#success-remove-tickets').hide();
             jQuery('#error-remove-tickets').hide();
+            var doctorId = jQuery("#removeTicketsModal #removeTicketsDoctor").val();
+            var date = jQuery("#removeTicketsModal #removeTicketDate").val();
             $.ajax({
                 type : "GET",
-                url : "/remove_tickets",
+                url : "/medr/remove_tickets",
                 data: {
-                    "doctorId": jQuery("#removeTicketsModal #removeTicketsDoctor").val(),
-                    "date": jQuery("#removeTicketsModal #removeTicketDate").val()
+                    "doctorId": doctorId,
+                    "date": date
                 },
                 timeout : 100000,
                 success : function() {
                     jQuery('#success-remove-tickets').show();
                     setTimeout(function() {}, 5000);
-                    location.reload();
+                    if (date.length > 0) {
+                        jQuery('.ticket-for-doctor-' + doctorId + '.ticket-for-date-' + date).remove();
+                    }
+                    else {
+                        jQuery('.ticket-for-doctor-' + doctorId).remove();
+					}
+                    //location.reload();
                 },
                 error : function() {
                     jQuery('#error-remove-tickets').show();
@@ -481,7 +488,7 @@
 		function removeTicket(el) {
             $.ajax({
                 type : "GET",
-                url : "/remove_ticket",
+                url : "/medr/remove_ticket",
                 data: {
                     "ticket_id": jQuery(el).parent().find("input[name=id]").val()
                 },
@@ -496,21 +503,77 @@
             });
 		}
         function removeDoctor(el) {
+            var doctorId = jQuery(el).parent().find("input[name=id]").val();
             $.ajax({
                 type : "GET",
-                url : "/remove_doctor",
+                url : "/medr/remove_doctor",
                 data: {
-                    "doctorId": jQuery(el).parent().find("input[name=id]").val()
+                    "doctorId": doctorId
                 },
                 timeout : 100000,
                 success : function() {
                     jQuery(el).parent().parent().remove();
+                    jQuery('#table-tickets tbody tr.ticket-for-doctor-' + doctorId).remove();
+                    var selectDoctorTicketsId = jQuery('#select-doctor-tickets').val();
+                    if (selectDoctorTicketsId == doctorId) {
+                        jQuery('#select-doctor-tickets').val(0);
+                        jQuery('#select-doctor-tickets').change();
+					}
+                    jQuery('#select-doctor-tickets option[value=' + doctorId + ']').remove();
                 },
                 error : function() {
                     var errorElem = '<div class="alert alert-danger alert-dismissable"><a href="#" class="close" data-dismiss="alert" aria-label="close">×</a>Error occured. Please, refresh page and try later.</div>';
                     jQuery(el).parent().parent().find("td:eq(3)").append(errorElem);
                 }
             });
+        }
+        function addDoctor() {
+            var el = $('#doctorModal');
+            var username = el.find('input[name=username]').val();
+            var password = el.find('input[name=password]').val();
+            var passwordConfirm = el.find('input[name=passwordConfirm]').val();
+            var fullName = el.find('input[name=fullName]').val();
+            var email = el.find('input[name=email]').val();
+            var position = el.find('input[name=position]').val();
+            var summary = el.find('input[name=summary]').val();
+
+            jQuery("#success-add-doctor").hide();
+            jQuery("#error-add-doctor").hide();
+            if (username.length > 0 && password.length > 0 && passwordConfirm.length > 0 && password == passwordConfirm && fullName.length > 0 && email.length > 0 && position.length > 0 && summary.length > 0) {
+                jQuery("#error-add-doctor-invalid").hide();
+                var form = {
+                    "username": username,
+                    "password": password,
+                    "fullName": fullName,
+                    "email": email,
+                    "position": position,
+                    "summary": summary,
+                    csrfName: csrfValue
+                };
+                form[csrfName] = csrfValue;
+                $.ajax({
+                    type: "POST",
+                    contentType: 'application/x-www-form-urlencoded;',
+                    url: "/medr/add_doctor",
+                    data: form,
+                    timeout: 100000,
+                    success: function (data) {
+                        $("#success-add-doctor").show();
+                        var markup = '<tr><td class="col-xs-3">' + fullName + '</td><td class="col-xs-2">' + email + '</td><td class="col-xs-3">' + position + '</td><td class="col-xs-3">' + summary + '</td><td>'
+                            + '<a class="btn btn-sm btn-primary" onclick="removeDoctor(this);"><span class="glyphicon glyphicon-remove"></span></a>'
+                            + '<a class="btn btn-sm btn-primary" data-toggle="modal" data-target="#addTicketsModal" onclick="saveDoctorId(this);">Add tickets</a>'
+                        	+ '<a class="btn btn-sm btn-primary" data-toggle="modal" data-target="#addTicketModal" onclick="saveDoctorId(this);">Add ticket</a>'
+                        	+ '<input name="id" type="hidden" value="' + data + '" /></td></tr>';
+						$("#table-doctors tbody").prepend(markup);
+                    },
+                    error: function () {
+                        $("#error-add-doctor").show();
+                    }
+                });
+            }
+            else {
+                $("#error-add-doctor-invalid").show();
+            }
         }
 		/*]]>*/
 	</script>
@@ -523,16 +586,19 @@
     	</div>
 	  	<th:block th:if="${user.isCitizen()}">
 			<ul class="nav navbar-nav">
-			  <li class="#"><a href="#">Profile</a></li>
-			  <li><a href="active">Institutions</a></li>
-			  <li><a href="#">Tickets</a></li>
-			  <li><a href="#">Childs</a></li>
-			  <li><a href="#">Educational requests</a></li>
+			  <li><a href="/profile">Profile</a></li>
+			  <li class="active"><a href="/institutions">Institutions</a></li>
+			  <li><a href="/tickets">Tickets</a></li>
+			  <li><a href="/childs">Childs</a></li>
+			  <li><a href="/requests">Educational requests</a></li>
 			</ul>
 	  	</th:block>
-		<ul class="nav navbar-nav navbar-right">
-		  <li><a href="#"><span class="glyphicon glyphicon-log-out"></span>&nbsp;Logout</a></li>
-		</ul>
+	  	<ul class="nav navbar-nav navbar-right">
+			<li><a onclick="document.forms['logoutForm'].submit()" class="btn"><span class="glyphicon glyphicon-log-out"></span>&nbsp;Logout</a></li>
+	  	</ul>
+	  	<form id="logoutForm" method="POST" action="/logout" style="display:none">
+		  	<input type="hidden" th:attr="name=${_csrf.parameterName},value=${_csrf.token}"/>
+	  	</form>
   </div>
 </nav>
 <div class="container">
@@ -553,14 +619,7 @@
 	<div class="row institution-information">
 		<div class="col-md-5">
 				<th:block th:if="${user.isCitizen()}">
-				<div class="row form-group select-institution">
-					<div class="col-sm-8">
-						<span>Select institution:</span>
-						<select id="type" class="form-control">
-							<option value="1">Educational</option>
-							<option value="0">Medical</option>
-						</select>
-					</div>
+				<div class="row form-group institution-block">
 					<th:block th:if="${isEdu}">
 						<div class="col-sm-4" th:if="${not #lists.isEmpty(user.childs)}">
 							<button type="button" class="btn btn-sm btn-primary pull-right" data-toggle="modal" data-target="#requestModal">Make request</button>
@@ -736,16 +795,7 @@
 <th:block th:unless="${isEdu}">
 <div id="container-doctors" class="container tab-pane fade">
 	<h2 class="form-heading text-center">Doctors</h2>
-	<div class="row form-group select-institution">
-		<th:block th:if="${user.isCitizen()}">
-		<div class="col-sm-12">
-			<span>Select institution:</span>
-			<select id="type" class="form-control">
-				<option value="1">Educational</option>
-				<option value="0">Medical</option>
-			</select>
-		</div>
-		</th:block>
+	<div class="row form-group institution-block">
 		<th:block th:if="${user.isMedicalRepresentative()}">
 		<div class="col-sm-12">
 			<button type="button" class="btn btn-sm btn-primary pull-right" data-toggle="modal" data-target="#doctorModal">Add doctor</button>
@@ -755,7 +805,7 @@
 	<th:block th:if="${user.isMedicalRepresentative()}">
 	</th:block>
 	<hr></hr>
-	<div class="row table-doctors">
+	<div class="row table-doctors" id="table-doctors">
 		<div>
 			<table class="table table-fixed">
 				<thead>
@@ -793,21 +843,14 @@
 </div>
 <div id="container-tickets" class="container tab-pane fade">
 	<h2 class="form-heading text-center">Tickets</h2>
-	<div class="row form-group select-institution">
-		<th:block th:if="${user.isCitizen()}">
-		<div class="col-sm-4">
-			<span>Select institution:</span>
-			<select id="institution" class="form-control">
-				<option value="1">Educational</option>
-				<option value="0">Medical</option>
-			</select>
-		</div>
-		</th:block>
+	<div class="row form-group institution-block">
 		<div class="col-sm-4">
 			<span>Select doctor:</span>
-			<select id="doctor" class="form-control">
-				<option value="1">Educational</option>
-				<option value="0">Medical</option>
+			<select id="select-doctor-tickets" class="form-control">
+				<option value="0">-Select doctor-</option>
+				<th:block th:each="doctor : ${institution.doctors}">
+					<option th:attr="value=${doctor.id}" th:text="${doctor.fullName + ' (' + doctor.position + ')'}"></option>
+				</th:block>
 			</select>
 		</div>
 		<th:block th:if="${user.isMedicalRepresentative()}">
@@ -833,7 +876,8 @@
 				</thead>
 					<tbody>
 					<th:block th:each="ticket : ${institution.tickets}">
-						<tr th:attr="id=${'el-ticket-' + ticket.id}">
+						<tr th:attr="id=${'el-ticket-' + ticket.id},class=${'ticket-for-doctor-' + ticket.doctor.id +
+							' ticket-for-date-' + #dates.format(ticket.date,'yyyy-MM-dd')}">
 							<td class="col-xs-1" th:text="${#dates.format(ticket.date,'yyyy-MM-dd HH:mm')}"></td>
 							<td class="col-xs-2" th:text="${ticket.doctor.fullName}"></td>
 							<td class="col-xs-2" th:if="${ticket.user}" th:text="${ticket.user.fullName}"></td>
@@ -865,9 +909,14 @@
 										</th:block>
 									</th:block>
 								</th:block>
-								<th:block th:if="${user.isMedicalRepresentative()}">
+								<th:block th:if="${user.isMedicalRepresentative() and ticket.canBeRefused()}">
 									<a class="btn btn-sm btn-primary" onclick="removeTicket(this);">
 										<span class="glyphicon glyphicon-remove"></span>
+									</a>
+								</th:block>
+								<th:block th:if="${user.isMedicalRepresentative() and ticket.canSetVisited()}">
+									<a class="btn btn-sm btn-primary" id="btn-set-visited" data-toggle="modal" data-target="#setVisitedModal" onclick="saveTicketId(this);">
+										<span class="glyphicon glyphicon-ok-sign">&nbsp;Set visited</span>
 									</a>
 								</th:block>
 								<input name="id" type="hidden" th:attr="value=${ticket.id}"/>
@@ -884,7 +933,7 @@
 <th:block th:if="${user.isEducationalRepresentative()}">
 <div id="container-requests" class="container tab-pane fade">
 	<h2 class="form-heading text-center">Educational requests</h2>
-	<div class="row table-request">
+	<div class="row table-request" id="table-requests">
 		<div>
 			<table class="table table-fixed">
 				<thead>
@@ -1020,7 +1069,7 @@
 						</div>
 						<div class="col-sm-12">
 							<label for="removeTicketDate">Date (for all leave blank):</label>
-							<input id="removeTicketDate" name="removeTicketDate" placeholder="Date" type="text" class="form-control" maxlength="2" />
+							<input id="removeTicketDate" name="removeTicketDate" placeholder="Date" type="text" class="form-control" maxlength="10" />
 						</div>       
 					</div>
 					<div class="alert alert-success px-2" style="display:none" id="success-remove-tickets">Ticket successfully removed!</div>
@@ -1042,7 +1091,7 @@
 					<h4 class="modal-title">Add doctor</h4>
 				</div>
 				<div class="modal-body">
-					<div class="container">
+					<div>
 					<form method="POST">
 						<div class="form-group">
 							<input id="username" name="username" placeholder="User name" type="text" autofocus="true" class="form-control"/>
@@ -1072,18 +1121,18 @@
 							<input id="summary" name="summary" placeholder="Summary" type="text" class="form-control" />
 						</div>
 					</form>
-						<div class="alert alert-success px-2" style="" id="success-add-doctor">Doctor successfully saved!</div>
-						<div class="alert alert-danger px-2" style="display:none" id="error-add-doctor-empty">You must fill all fields!</div>
-					<div class="alert alert-danger px-2" style="display:none" id="error-add-doctor">Error occured during adding doctor. Please, refresh page and try later.</div>
+						<div class="alert alert-success px-2" style="display:none" id="success-add-doctor">Doctor successfully saved!</div>
+						<div class="alert alert-danger px-2" style="display:none" id="error-add-doctor-invalid">You must fill all fields! Also password and it confirm must be equal!</div>
+					<div class="alert alert-danger px-2" style="display:none" id="error-add-doctor">Error occurred during adding doctor. May be user with this username already exists or you enter invalid email! Please, refresh page and try later.</div>
 					</div>
 				</div>
 				<div class="modal-footer">
-					<a class="btn btn-sm btn-primary pull-right" onclick="addDoctor();" data-dismiss="modal">Add doctor</a>
+					<a class="btn btn-sm btn-primary pull-right" onclick="addDoctor();">Add doctor</a>
 					<button type="button" class="btn btn-sm btn-default" data-dismiss="modal"><span class="glyphicon glyphicon-remove"></span>&nbsp;Close</button>
 				</div>
 			</div>
 		</div>
-	</div>-->
+	</div>
 	<!-- Modal -->
 	<div id="feedbackModal" class="modal fade" role="dialog">
 				<div class="modal-dialog">
@@ -1112,6 +1161,35 @@
 						</div>
 					</div>
 				</div>
+	</div>
+	<!-- Modal -->
+	<div id="setVisitedModal" class="modal fade" role="dialog">
+		<div class="modal-dialog">
+			<!-- Modal content-->
+			<div class="modal-content">
+				<div class="modal-header">
+					<button type="button" class="close" data-dismiss="modal">&times;</button>
+					<h4 class="modal-title">Enter visit summary</h4>
+				</div>
+				<div class="modal-body">
+					<div class="form-group">
+						<div class="row">
+							<div class="col-sm-12">
+								<input name="summary-text" type="text" class="form-control" />
+							</div>
+						</div>
+					</div>
+					<div>
+						<div class="alert alert-success px-2" style="display:none;" id="success-summary">Summary successfully saved!</div>
+						<div class="alert alert-danger px-2" style="display:none;" id="error-summary">Error occurred during saving status and summary. Please, check that summary not empty or refresh page and try later.</div>
+					</div>
+				</div>
+				<div class="modal-footer">
+					<a class="btn btn-sm btn-primary pull-right" onclick="saveSetVisited();">Save</a>
+					<button type="button" class="btn btn-sm btn-default" data-dismiss="modal"><span class="glyphicon glyphicon-remove"></span>&nbsp;Close</button>
+				</div>
+			</div>
+		</div>
 	</div>
 	<!-- Modal -->
 	<div id="appointmentModal" class="modal fade" role="dialog">

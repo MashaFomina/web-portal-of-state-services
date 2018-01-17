@@ -28,8 +28,11 @@
 		  <li><a href="/requests">Educational requests</a></li>
 	</ul>
 	<ul class="nav navbar-nav navbar-right">
-      <li><a href="#"><span class="glyphicon glyphicon-log-out"></span>&nbsp;Logout</a></li>
+      <li><a onclick="document.forms['logoutForm'].submit()" class="btn"><span class="glyphicon glyphicon-log-out"></span>&nbsp;Logout</a></li>
     </ul>
+	<form id="logoutForm" method="POST" action="/logout" style="display:none">
+		  <input type="hidden" th:attr="name=${_csrf.parameterName},value=${_csrf.token}"/>
+	</form>
   </div>
 </nav>
 <div class="container">
@@ -73,7 +76,12 @@
 				</div>
 
 				<div th:class="${#fields.errors('*')} ? 'form-group has-error' : 'form-group'">
-					<input id="birthDate" name="birthDate" th:field="*{birthDate}" placeholder="Birth date (format: 1995-10-11)" type="text" class="form-control" maxlength="10" th:attr="value=${#dates.format(userForm.birthDate,'yyyy-MM-dd')}" />
+					<th:block th:if="${userForm.birthDate}">
+						<input id="birthDate" name="birthDate" th:field="*{birthDate}" placeholder="Birth date (format: 1995-10-11)" type="text" class="form-control" maxlength="10" th:attr="value=${#dates.format(userForm.birthDate,'yyyy-MM-dd')}" />
+					</th:block>
+					<th:block th:unless="${userForm.birthDate}">
+						<input id="birthDate" name="birthDate" th:field="*{birthDate}" placeholder="Birth date (format: 1995-10-11)" type="text" class="form-control" maxlength="10" value="" />
+					</th:block>
 					<span th:if="${#fields.hasErrors('birthDate')}" th:errors="*{birthDate}"></span>
 				</div>
 				
@@ -93,7 +101,7 @@
 					<tbody>
 					<th:block th:each="notification : ${userForm.notifications}">
 						<tr>
-							<td class="col-xs-5" th:text="${notification.date}"></td>
+							<td class="col-xs-5" th:text="${#dates.format(notification.date,'yyyy-MM-dd HH:mm')}"></td>
 							<td class="col-xs-7" th:text="${notification.notification}"></td>
 				  		</tr>
 					</th:block>

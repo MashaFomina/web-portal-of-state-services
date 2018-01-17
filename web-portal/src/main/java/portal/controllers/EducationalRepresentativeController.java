@@ -42,6 +42,7 @@ import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 
+@RequestMapping("/edur")
 @Controller
 public class EducationalRepresentativeController {
     Logger log = LoggerFactory.getLogger(ProjectsController.class);

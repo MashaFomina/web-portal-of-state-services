@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -26,17 +27,16 @@ import portal.repositories.institutions.EducationalInstitutionRepository;
 import portal.repositories.institutions.InstitutionBaseRepository;
 import portal.repositories.institutions.MedicalInstitutionRepository;
 import portal.repositories.users.DoctorRepository;
+import portal.repositories.users.RoleRepository;
 import portal.repositories.users.UserRepository;
 
 import java.security.Principal;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 
+@RequestMapping("/medr")
 @Controller
 public class MedicalRepresentativeController  {
     Logger log = LoggerFactory.getLogger(ProjectsController.class);
@@ -54,7 +54,10 @@ public class MedicalRepresentativeController  {
     private TicketRepository ticketRepository;
     @Autowired
     private DoctorRepository doctorRepository;
-
+    @Autowired
+    private BCryptPasswordEncoder bCryptPasswordEncoder;
+    @Autowired
+    private RoleRepository roleRepository;
 
     private DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm");
     private DateFormat dateFormatWithoutTime = new SimpleDateFormat("yyyy-MM-dd");
@@ -75,6 +78,21 @@ public class MedicalRepresentativeController  {
             }
         } catch (NoRightsException ex) {
             log.debug("Error while representative remove ticket!");
+        }
+        return new ResponseEntity<Error>(HttpStatus.CONFLICT);
+    }
+
+    @RequestMapping(value = "/set_ticket_visited", method = RequestMethod.GET)
+    public ResponseEntity<?> setTicketVisited(Principal principal, @RequestParam(value = "ticket_id", required = true) Long ticket_id, @RequestParam(value = "summary", required = true) String summary) {
+        User user = userBaseRepository.findByUsername(principal.getName());
+        if (user.isMedicalRepresentative()) {
+            Ticket ticket = ticketRepository.findById(ticket_id);
+            MedicalInstitution institution = (MedicalInstitution) ((InstitutionRepresentative) user).getInstitution();
+            if (ticket != null && ticket.getInstitution().equals(institution)) {
+                ticket.setVisited(true, summary);
+                medicalInstitutionRepository.save(institution);
+                return new ResponseEntity<>(HttpStatus.OK);
+            }
         }
         return new ResponseEntity<Error>(HttpStatus.CONFLICT);
     }
@@ -137,6 +155,24 @@ public class MedicalRepresentativeController  {
             }
         } catch (InvalidTicketsDatesException | ParseException | NoRightsException ex) {
             log.debug("Error while representative add ticket!");
+        }
+        return new ResponseEntity<Error>(HttpStatus.CONFLICT);
+    }
+
+    @RequestMapping(value = "/add_doctor", method = RequestMethod.POST)//produces = {MediaType.}
+    public ResponseEntity<?> addDoctor(Principal principal, @RequestParam(value = "username", required = true) String username, @RequestParam(value = "password", required = true) String password, @RequestParam(value = "fullName", required = true) String fullName, @RequestParam(value = "email", required = true) String email, @RequestParam(value = "position", required = true) String position, @RequestParam(value = "summary", required = true) String summary) {
+        //user.addDoctor(newDoctor);
+        try {
+            User user = userBaseRepository.findByUsername(principal.getName());
+            MedicalInstitution institution = (MedicalInstitution) ((InstitutionRepresentative) user).getInstitution();
+            Doctor newDoctor = new Doctor(username, bCryptPasswordEncoder.encode(password), fullName, email, institution, position, summary, true);
+            HashSet<Role> roles = new HashSet<Role>();
+            roles.add(roleRepository.findByName("ROLE_DOCTOR"));
+            newDoctor.setRoles(roles);
+            doctorRepository.save(newDoctor);
+            return new ResponseEntity<>(newDoctor.getId(), HttpStatus.OK);
+        } catch (Exception ex) {
+            log.debug("Error while representative add doctor!");
         }
         return new ResponseEntity<Error>(HttpStatus.CONFLICT);
     }

@@ -42,12 +42,6 @@ public class EducationalRepresentative extends InstitutionRepresentative {
         this.approved = user.approved;
     }
 
-
-
-
-
-
-
     @Override
     public EducationalInstitution getInstitution() {
         return institution;

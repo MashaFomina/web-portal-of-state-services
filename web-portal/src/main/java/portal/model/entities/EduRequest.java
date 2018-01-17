@@ -64,8 +64,6 @@ public class EduRequest {
     private Date appointment;
     @Column(name = "class_number")
     private int classNumber;
-    @Transient
-    private boolean updated = false;
 
     public EduRequest() {}
 
@@ -146,23 +144,12 @@ public class EduRequest {
 
     public void setClassNumber(int classNumber) { this.classNumber = classNumber; }
 
-    @Transient
-    public boolean isUpdated() {
-        return updated;
-    }
-
-    public void resetUpdated() {
-        updated = false;
-    }
-
     public void changeStatus(Status status) {
         setStatus(status);
-        updated = true;
     }
 
     public void makeAppointment(Date appointment) {
         setAppointment(appointment);
-        updated = true;
     }
 
     public boolean isPassedAppointment() {

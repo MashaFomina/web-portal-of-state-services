@@ -123,6 +123,10 @@ public class Ticket {
         return date.after(currentDate);
     }
 
+    public boolean canSetVisited() {
+        return !canBeRefused() && !isVisited() && user != null;
+    }
+
     @Transient
     public boolean isTicketForChild() {
         return (child != null);

@@ -8,7 +8,19 @@
 		http://www.springframework.org/schema/security/spring-security.xsd">
 
     <http auto-config="true">
-        <intercept-url pattern="/" access="hasRole('ROLE_USER')"/>
+        <intercept-url pattern="/" access="hasRole('ROLE_CITIZEN')"/>
+        <intercept-url pattern="/profile" access="hasRole('ROLE_CITIZEN')"/>
+        <intercept-url pattern="/profile/*" access="hasRole('ROLE_CITIZEN')"/>
+        <intercept-url pattern="/institutions" access="hasRole('ROLE_CITIZEN')"/>
+        <intercept-url pattern="/tickets" access="hasRole('ROLE_CITIZEN')"/>
+        <intercept-url pattern="/childs" access="hasRole('ROLE_CITIZEN')"/>
+        <intercept-url pattern="/requests" access="hasRole('ROLE_CITIZEN')"/>
+        <intercept-url pattern="/citizen/*" access="hasRole('ROLE_CITIZEN')"/>
+        <intercept-url pattern="/medr/*" access="hasRole('ROLE_MEDICAL_REPRESENTATIVE')"/>
+        <intercept-url pattern="/edur/*" access="hasRole('ROLE_EDU_REPRESENTATIVE')"/>
+        <intercept-url pattern="/save_institution_info" access="hasAnyRole('ROLE_EDU_REPRESENTATIVE, ROLE_MEDICAL_REPRESENTATIVE')"/>
+        <intercept-url pattern="/add_feedback" access="hasAnyRole('ROLE_CITIZEN, ROLE_EDU_REPRESENTATIVE, ROLE_MEDICAL_REPRESENTATIVE')"/>
+        <intercept-url pattern="/institutionview" access="hasAnyRole('ROLE_CITIZEN, ROLE_EDU_REPRESENTATIVE, ROLE_MEDICAL_REPRESENTATIVE')"/>
         <intercept-url pattern="/portal" access="hasAnyRole('ROLE_CITIZEN, ROLE_EDU_REPRESENTATIVE, ROLE_MEDICAL_REPRESENTATIVE')"/>
         <form-login login-page="/login" default-target-url="/portal" authentication-failure-url="/login?error" username-parameter="username" password-parameter="password"/>
         <logout logout-success-url="/login?logout" />

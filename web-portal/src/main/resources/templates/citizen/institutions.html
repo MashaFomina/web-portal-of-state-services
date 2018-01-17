@@ -20,7 +20,8 @@
                 cityEl.hide();
                 $('#district').hide();
 				jQuery("#error-empty").hide();
-				$.ajax({
+                if ($('#type').val() != -1) {
+                    $.ajax({
                         type: "GET",
                         url: "/get_cities",
                         data: {
@@ -30,6 +31,7 @@
                         success: function (data) {
                             if (data.length > 0) {
                                 cityEl.find('option').remove();
+                                cityEl.append('<option value="0">-Select city-</option>');
                                 jQuery("#error").hide();
                                 for (var i = 0, len = data.length; len > i; ++i) {
                                     cityEl.append('<option value="' + data[i] + '">' + data[i] + '</option>');
@@ -38,72 +40,82 @@
                             }
                             else {
                                 jQuery("#error").show();
-							}
+                            }
                         },
                         error: function () {
                             jQuery("#error").show();
                         }
-				});
+                    });
+                }
 			})
 			$('#city').on('change', function() {
 				var districtEl = $('#district');
 				districtEl.hide();
+				if ($('#city').val() != 0) {
+                    $.ajax({
+                        type: "GET",
+                        url: "/get_districts",
+                        data: {
+                            "is_edu": $('#type').val(),
+                            "city": $('#city').val()
+                        },
+                        timeout: 100000,
+                        success: function (data) {
+                            if (data.length > 0) {
+                                districtEl.find('option').remove();
+                                jQuery("#error").hide();
+                                districtEl.append('<option value="0">-Select district-</option>');
+                                for (var i = 0, len = data.length; len > i; ++i) {
+                                    districtEl.append('<option value="' + data[i] + '">' + data[i] + '</option>');
+                                }
+                                districtEl.show();
+                            }
+                            else {
+                                jQuery("#error").show();
+                            }
+                        },
+                        error: function () {
+                            jQuery("#error").show();
+                        }
+                    });
+                }
+			})
+		});
+		function search() {
+			var tbody = $(".search-results tbody");
+			tbody.html("");
+			if ($('#city').val() == 0 || $('#district').val() == 0) {
+                $('#error-invalid').show();
+			}
+			else {
+                $('#error-invalid').hide();
                 $.ajax({
                     type: "GET",
-                    url: "/get_districts",
+                    url: "/get_institutions",
                     data: {
                         "is_edu": $('#type').val(),
-						"city": $('#city').val()
+                        "city": $('#city').val(),
+                        "district": $('#district').val()
                     },
                     timeout: 100000,
                     success: function (data) {
                         if (data.length > 0) {
-                            districtEl.find('option').remove();
                             jQuery("#error").hide();
                             for (var i = 0, len = data.length; len > i; ++i) {
-                                districtEl.append('<option value="' + data[i] + '">' + data[i] + '</option>');
+                                var markup = '<tr><td class="col-xs-4"><a href="/institutionview?id=' + data[i].id + '">' + data[i].title + '</a></td><td class="col-xs-2">' + data[i].telephone + '</td><td class="col-xs-2">' + data[i].fax + '</td><td class="col-xs-4">' + data[i].address + '</td></tr>';
+                                tbody.append(markup);
                             }
-                            districtEl.show();
+                            $('.search-results').show();
                         }
                         else {
-                            jQuery("#error").show();
+                            jQuery("#error_empty").show();
                         }
                     },
                     error: function () {
                         jQuery("#error").show();
                     }
                 });
-			})
-		});
-		function search() {
-			var tbody = $(".search-results tbody");
-			tbody.html("");
-            $.ajax({
-                type: "GET",
-                url: "/get_institutions",
-                data: {
-                    "is_edu": $('#type').val(),
-                    "city": $('#city').val(),
-                    "district": $('#district').val()
-                },
-                timeout: 100000,
-                success: function (data) {
-                    if (data.length > 0) {
-                        jQuery("#error").hide();
-                        for (var i = 0, len = data.length; len > i; ++i) {
-                            var markup = '<tr><td class="col-xs-4"><a href="/institutionview?id=' + data[i].id + '">' + data[i].title + '</a></td><td class="col-xs-2">' + data[i].telephone + '</td><td class="col-xs-2">' + data[i].fax + '</td><td class="col-xs-4">' + data[i].address + '</td></tr>';
-                            tbody.append(markup);
-                        }
-                        $('.search-results').show();
-                    }
-                    else {
-                        jQuery("#error_empty").show();
-                    }
-                },
-                error: function () {
-                    jQuery("#error").show();
-                }
-            });
+            }
 		}
 	</script>
 </head>
@@ -121,8 +133,11 @@
 		  <li><a href="/requests">Educational requests</a></li>
 	</ul>
 	<ul class="nav navbar-nav navbar-right">
-      <li><a href="#"><span class="glyphicon glyphicon-log-out"></span>&nbsp;Logout</a></li>
-    </ul>
+		<li><a onclick="document.forms['logoutForm'].submit()" class="btn"><span class="glyphicon glyphicon-log-out"></span>&nbsp;Logout</a></li>
+	</ul>
+	<form id="logoutForm" method="POST" action="/logout" style="display:none">
+		<input type="hidden" th:attr="name=${_csrf.parameterName},value=${_csrf.token}"/>
+	</form>
   </div>
 </nav>
 <div class="container">
@@ -132,6 +147,7 @@
 				<div class="form-group">
 					<div class="col-sm-4">
 						<select id="type" class="form-control">
+							<option value="-1">-Select type-</option>
 							<option value="1">Educational</option>
 							<option value="0">Medical</option>
 					   </select>
@@ -150,6 +166,7 @@
 				</div>		
 				<div class="alert alert-danger px-2" style="display:none" id="error">Error occured. Please, refresh page and try later.</div>
 				<div class="alert alert-danger px-2" style="display:none" id="error-empty">Institutions not found!</div>
+				<div class="alert alert-danger px-2" style="display:none" id="error-invalid">Please select city and district!</div>
 		</form>
 	</div>
 	<hr></hr>

@@ -20,7 +20,7 @@
         function removeChildInfo(elem) {
             $.ajax({
                 type : "GET",
-                url : "/remove_child",
+                url : "/citizen/remove_child",
                 data: {
                     "child_id": jQuery(elem).find("input[name=id]").val()
                 },
@@ -50,7 +50,7 @@
                 $.ajax({
                     type: "POST",
                     contentType: 'application/x-www-form-urlencoded;',
-                    url: "/add_child",
+                    url: "/citizen/add_child",
                     data: form,
                     timeout: 100000,
                     success: function (data) {
@@ -84,8 +84,11 @@
 	  <li><a href="/requests">Educational requests</a></li>
     </ul>
 	<ul class="nav navbar-nav navbar-right">
-      <li><a href="#"><span class="glyphicon glyphicon-log-out"></span>&nbsp;Logout</a></li>
-    </ul>
+		<li><a onclick="document.forms['logoutForm'].submit()" class="btn"><span class="glyphicon glyphicon-log-out"></span>&nbsp;Logout</a></li>
+	</ul>
+	<form id="logoutForm" method="POST" action="/logout" style="display:none">
+		<input type="hidden" th:attr="name=${_csrf.parameterName},value=${_csrf.token}"/>
+	</form>
   </div>
 </nav>
 <div class="container">

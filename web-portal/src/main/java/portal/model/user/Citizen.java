@@ -8,6 +8,7 @@ import java.util.Map;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.ArrayList;
+import org.springframework.format.annotation.DateTimeFormat;
 
 import portal.model.entities.*;
 import portal.errors.NoFreeSeatsException;
@@ -20,6 +21,7 @@ public class Citizen extends User {
     private String policy;
     private String passport;
     @Column(name = "birth_date")
+    @DateTimeFormat(pattern = "yyyy-MM-dd")
     private Date birthDate;
     @OneToMany(mappedBy="parent", orphanRemoval=true, cascade = { CascadeType.ALL,CascadeType.PERSIST,CascadeType.MERGE })
     @OrderBy("id DESC")
