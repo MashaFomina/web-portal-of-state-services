@@ -29,8 +29,6 @@ public abstract class Institution {
     private String address;
     //@Column(name="is_edu")
     //private boolean isEdu;
-    @Transient
-    protected boolean updated = false;
     @OneToMany(mappedBy="institution", orphanRemoval=true, cascade = { CascadeType.ALL,CascadeType.PERSIST,CascadeType.MERGE })/*, cascade = {CascadeType.ALL}, targetEntity = Feedback.class)//Transaction.class)
     @Where(clause = "tableType='I'")*/
     @OrderBy("id DESC")
@@ -63,7 +61,6 @@ public abstract class Institution {
         this.telephone = telephone;
         this.fax = fax;
         this.address = address;
-        updated = true;
     }
 
     public Long getId() {
@@ -113,15 +110,6 @@ public abstract class Institution {
 
     public void setFeedbacks(List<Feedback> feedbacks) {
         this.feedbacks = feedbacks;
-    }
-
-    @Transient
-    public boolean isUpdated() {
-        return updated;
-    }
-
-    public void resetUpdated() {
-        updated = false;
     }
 
     public abstract boolean saveFeedback(Feedback feedback) throws NoRightsException;

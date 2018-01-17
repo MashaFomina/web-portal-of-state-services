@@ -11,6 +11,8 @@ import portal.errors.NoRightsException;
 import portal.model.user.Doctor;
 import portal.model.user.Citizen;
 import portal.model.user.User;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 
 @Entity(name = "MedicalInstitution")
 @DiscriminatorValue(value = "0")
@@ -26,6 +28,8 @@ public class MedicalInstitution extends Institution {
     @OneToMany(mappedBy="institution", orphanRemoval=true, cascade = { CascadeType.ALL,CascadeType.PERSIST,CascadeType.MERGE })
     @OrderBy("id DESC")
     private List<Ticket> tickets = new ArrayList<>();
+    @Transient
+    private DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm");
 
     public MedicalInstitution() {}
 
@@ -71,7 +75,7 @@ public class MedicalInstitution extends Institution {
                 user = t.getUser();
                 if (user != null) {
                     if (t.canBeRefused()) {
-                        String notification = "Sorry, but your ticket to " + t.getDoctor().getFullName() + " in " + getTitle() + " on " + t.getDate() + " was canceled!";
+                        String notification = "Sorry, but your ticket to " + t.getDoctor().getFullName() + " in " + getTitle() + " on " + dateFormat.format(t.getDate()) + " was canceled!";
                         user.addNotification(notification);
                         citizensOfRemovedTicketsToUpdate.add(user);
                     }
@@ -206,7 +210,7 @@ public class MedicalInstitution extends Institution {
         Citizen user = ticket.getUser();
         if (user != null) {
             if (ticket.canBeRefused()) {
-                String notification = "Sorry, but your ticket to " + ticket.getDoctor().getFullName() + " in " + this.getTitle() + " on " + ticket.getDate() + " was canceled!";
+                String notification = "Sorry, but your ticket to " + ticket.getDoctor().getFullName() + " in " + this.getTitle() + " on " + dateFormat.format(ticket.getDate()) + " was canceled!";
                 user.addNotification(notification);
             }
             user.removeTicket(ticket);
@@ -229,7 +233,7 @@ public class MedicalInstitution extends Institution {
                 user = t.getUser();
                 if (user != null) {
                     if (t.canBeRefused()) {
-                        String notification = "Sorry, but your ticket to " + t.getDoctor().getFullName() + " in " + this.getTitle() + " on " + t.getDate() + " was canceled!";
+                        String notification = "Sorry, but your ticket to " + t.getDoctor().getFullName() + " in " + this.getTitle() + " on " + dateFormat.format(t.getDate()) + " was canceled!";
                         user.addNotification(notification);
                         citizensOfRemovedTicketsToUpdate.add(user);
                     }

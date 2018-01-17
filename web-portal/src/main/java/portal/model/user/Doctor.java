@@ -1,5 +1,7 @@
 package portal.model.user;
 
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 
@@ -91,7 +93,8 @@ public class Doctor extends User implements InstitutionRepresentativeInterface {
         if (!ticket.getDoctor().equals(this)) {
             throw new NoRightsException("You have no rights to delete tickets of other doctor!");
         }
-        ticket.getUser().addNotification("Sorry, but your ticket to " + ticket.getDoctor().getFullName() + " in " + institution.getTitle() + " on " + ticket.getDate() + " was canceled!");
+        DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm");
+        ticket.getUser().addNotification("Sorry, but your ticket to " + ticket.getDoctor().getFullName() + " in " + institution.getTitle() + " on " + dateFormat.format(ticket.getDate()) + " was canceled!");
         Citizen user = ticket.getUser();
         if (user != null) {
             user.removeTicket(ticket);

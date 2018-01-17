@@ -25,7 +25,7 @@ import java.util.List;
 
 @Controller
 public class InstitutionController {
-    Logger log = LoggerFactory.getLogger(ProjectsController.class);
+    Logger log = LoggerFactory.getLogger(InstitutionController.class);
     @Autowired
     private MedicalInstitutionRepository medicalInstitutionRepository;
     @Autowired
@@ -34,8 +34,6 @@ public class InstitutionController {
     private UserRepository userBaseRepository;
     @Autowired
     private EducationalInstitutionRepository educationalInstitutionRepository;
-
-    private DateFormat dateFormatWithoutTime = new SimpleDateFormat("yyyy-MM-dd");
 
     class responseResult {
         private Long id;
@@ -76,9 +74,6 @@ public class InstitutionController {
 
     @RequestMapping(value = "/institutionview", method = RequestMethod.GET)
     public String getInstitution(@RequestParam(value = "id", required = true) Long id, Principal principal, Model model) {
-        //User user = userBaseRepository.findByUsername("citizen");
-        //User user = userBaseRepository.findByUsername("edur");
-        //User user = userBaseRepository.findByUsername("medr");
         User user = userBaseRepository.findByUsername(principal.getName());
         Institution institution = institutionRepository.findById(id);
         boolean isEdu = institution.isEdu();
@@ -94,7 +89,6 @@ public class InstitutionController {
     public ResponseEntity<?> addFeedbackByUser(Principal principal, @RequestParam(value = "institutionId", required = true) Long institutionId, @RequestParam(value = "text", required = true) String text, @RequestParam(value = "toUserId", required = true) Long toUserId) {
         try {
             if (text.length() > 0) {
-                //User user = userBaseRepository.findByUsername("citizen");
                 User user = userBaseRepository.findByUsername(principal.getName());
                 User userTo = toUserId > 0 ? userBaseRepository.findById(toUserId) : null;
                 Institution institution = institutionRepository.findById(institutionId);
@@ -153,7 +147,6 @@ public class InstitutionController {
 
     @RequestMapping(value = "/save_institution_info", method = RequestMethod.POST, produces = {MediaType.APPLICATION_JSON_VALUE})
     public ResponseEntity<?> saveInstitutionInformation(Principal principal, @RequestParam Long institutionId, @RequestParam String title, @RequestParam String city, @RequestParam String district, @RequestParam String address, @RequestParam String telephone, @RequestParam String fax) {
-        //User user = userBaseRepository.findByUsername("edur");
         User user = userBaseRepository.findByUsername(principal.getName());
         if (user.isMedicalRepresentative() || user.isEducationalRepresentative()) {
             Institution institution = institutionRepository.findById(institutionId);

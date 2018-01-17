@@ -8,7 +8,6 @@
 		http://www.springframework.org/schema/security/spring-security.xsd">
 
     <http auto-config="true">
-        <intercept-url pattern="/" access="hasRole('ROLE_CITIZEN')"/>
         <intercept-url pattern="/profile" access="hasRole('ROLE_CITIZEN')"/>
         <intercept-url pattern="/profile/*" access="hasRole('ROLE_CITIZEN')"/>
         <intercept-url pattern="/institutions" access="hasRole('ROLE_CITIZEN')"/>

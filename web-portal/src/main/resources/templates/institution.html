@@ -434,7 +434,7 @@
 			}
         }
         function takeTicketAjax(ticket_id, child_id) {
-            var row = jQuery('#table-tickets tbody tr').find('#el-ticket-' + ticketId);
+            var row = jQuery('#table-tickets tbody tr#el-ticket-' + ticketId);
             $.ajax({
                 type : "GET",
                 url : "/citizen/take_ticket",
@@ -629,7 +629,7 @@
 				</th:block>
 				
 				<div class="clearfix"></div>
-				<th:block th:unless="${user.isEducationalRepresentative()}">
+				<th:block th:unless="${user.isEducationalRepresentative() or user.isMedicalRepresentative()}">
 				<div class="dl-horizontal institution-info">
 					<dl>
 						<dt>Title</dt>
@@ -657,7 +657,7 @@
 					</dl>
 				</div>
 				</th:block>
-				<th:block th:if="${user.isEducationalRepresentative()}">
+				<th:block th:if="${user.isEducationalRepresentative() or user.isMedicalRepresentative()}">
 					<form method="POST" id="institution-info-form">
 						<h2 class="form-heading">Edit information</h2>
 						<div class="form-group">

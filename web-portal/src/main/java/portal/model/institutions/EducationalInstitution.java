@@ -35,7 +35,6 @@ public class EducationalInstitution extends Institution {
         super(title, city, district, telephone, fax, address);
         if (seats != null && busySeats != null) {
             setSeats(seats, busySeats);
-            updated = false;
         }
     }
 
@@ -46,7 +45,6 @@ public class EducationalInstitution extends Institution {
     public EducationalInstitution(EducationalInstitution institution) {
         super(institution);
         setSeats(institution.seats, institution.busySeats);
-        updated = false;
     }
 
     public void edit(String title, String city, String district, String telephone, String fax, String address, Map<Integer, Integer> seats, Map<Integer, Integer> busySeats) {
@@ -54,7 +52,6 @@ public class EducationalInstitution extends Institution {
         if (seats != null && busySeats != null) {
             setSeats(seats, busySeats);
         }
-        updated = true;
     }
 
     public List<EduRequest> getEduRequests() {
@@ -138,8 +135,6 @@ public class EducationalInstitution extends Institution {
             listSeats.remove(i);
         }
         listSeats.add(s);
-
-        updated = true;
     }
 
     public void setSeats(Map<Integer, Integer> seats, Map<Integer, Integer> busySeats) {
@@ -152,7 +147,6 @@ public class EducationalInstitution extends Institution {
                 listSeats.add(new Seats(cN, entry.getValue(), busySeats.get(cN), this));
             }
         }
-        updated = true;
     }
 
     public void addEduRequest(EduRequest request) throws NoRightsException {

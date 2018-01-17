@@ -13,7 +13,7 @@ import portal.model.institutions.Institution;
 import java.util.List;
 import java.util.Date;
 import portal.errors.NoRightsException;
-//import services.stateservices.service.NotificationEmaiService;
+import portal.services.NotificationEmaiService;
 
 @Entity
 @Table(name = "users")
@@ -117,8 +117,8 @@ public abstract class User {
     }
 
     public void addNotification(String notification) {
-        /*NotificationEmaiService service = new NotificationEmaiService(email, notification);
-        service.sendNotification();*/
+        NotificationEmaiService service = new NotificationEmaiService(email, notification);
+        service.sendNotification();
         Date date = new Date();
         Notification n = new Notification(this, notification, date);
         notifications.add(n);

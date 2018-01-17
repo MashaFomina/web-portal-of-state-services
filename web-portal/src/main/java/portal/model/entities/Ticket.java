@@ -37,8 +37,6 @@ public class Ticket {
     @Column(name = "visited")
     private boolean visited = false;
     private String summary = "";
-    @Transient
-    private boolean updated = false;
 
     public Ticket() {}
 
@@ -132,19 +130,10 @@ public class Ticket {
         return (child != null);
     }
 
-    public boolean isUpdated() {
-        return updated;
-    }
-
-    public void resetUpdated() {
-        updated = false;
-    }
-
     // Returns false if ticket already busy
     public boolean acceptTicket(Citizen user) {
         if (this.user == null) {
             this.user = user;
-            updated = true;
         }
         else {
             return false;
@@ -157,7 +146,6 @@ public class Ticket {
         if (this.user == null) {
             this.user = user;
             this.child = child;
-            updated = true;
         }
         else {
             return false;
@@ -168,13 +156,11 @@ public class Ticket {
     public void refuseTicket() {
         this.user = null;
         this.child = null;
-        updated = true;
     }
 
     public void setVisited(boolean visited, String summary) {
         this.visited = visited;
         this.summary = summary;
-        updated = true;
     }
 
     @Override

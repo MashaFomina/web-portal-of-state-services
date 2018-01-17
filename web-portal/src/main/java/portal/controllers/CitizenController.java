@@ -55,8 +55,6 @@ public class CitizenController {
 
     @RequestMapping(value = "/profile", method = RequestMethod.GET)
     public String getProfile(Principal principal, Model model) {
-        //System.out.println("principal.getName(): " + principal.getName()); if (principal.getName() != null)
-        //Citizen citizen = citizenRepository.findByUsername("citizen");
         return getProfileCommon(principal, model);
     }
 
@@ -66,8 +64,6 @@ public class CitizenController {
     }
 
     public String getProfileCommon(Principal principal, Model model) {
-        //System.out.println("principal.getName(): " + principal.getName()); if (principal.getName() != null)
-        //Citizen citizen = citizenRepository.findByUsername("citizen");
         Citizen citizen = citizenRepository.findByUsername(principal.getName());
         model.addAttribute("userForm", citizen);
         System.out.println("Count of notifications: " + citizen.getNotifications().size());
@@ -99,8 +95,6 @@ public class CitizenController {
 
     @RequestMapping(value = "/tickets", method = RequestMethod.GET)
     public String getTickets(Principal principal, Model model) {
-        //System.out.println("principal.getName(): " + principal.getName()); if (principal.getName() != null)
-        //Citizen citizen = citizenRepository.findByUsername("citizen");
         Citizen citizen = citizenRepository.findByUsername(principal.getName());
         model.addAttribute("citizen", citizen);
         System.out.println("Count of tickets: " + citizen.getTickets().size());
@@ -109,8 +103,6 @@ public class CitizenController {
 
     @RequestMapping(value = "/requests", method = RequestMethod.GET)
     public String getRequests(Principal principal, Model model) {
-        //System.out.println("principal.getName(): " + principal.getName()); if (principal.getName() != null)
-        //Citizen citizen = citizenRepository.findByUsername("citizen");
         Citizen citizen = citizenRepository.findByUsername(principal.getName());
         model.addAttribute("requests", citizen.getEduRequests());
         System.out.println("Count of requests: " + citizen.getEduRequests().size());
@@ -119,8 +111,6 @@ public class CitizenController {
 
     @RequestMapping(value = "/childs", method = RequestMethod.GET)
     public String getChilds(Principal principal, Model model) {
-        //System.out.println("principal.getName(): " + principal.getName()); if (principal.getName() != null)
-        //Citizen citizen = citizenRepository.findByUsername("citizen");
         Citizen citizen = citizenRepository.findByUsername(principal.getName());
         model.addAttribute("childs", citizen.getChilds().values());
         System.out.println("Count of childs: " + citizen.getChilds().size());
