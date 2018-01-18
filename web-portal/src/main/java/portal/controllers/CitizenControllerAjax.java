@@ -152,7 +152,7 @@ public class CitizenControllerAjax {
     }
 
     @RequestMapping(value = "/remove_child", method = RequestMethod.GET)
-    public ResponseEntity<?> removeEduRequest1(Principal principal, @RequestParam(value = "child_id", required = true) int child_id) {
+    public ResponseEntity<?> removeChild(Principal principal, @RequestParam(value = "child_id", required = true) int child_id) {
         try {
             Citizen citizen = citizenRepository.findByUsername(principal.getName());
             Child child = childRepository.findById(new Long(child_id));

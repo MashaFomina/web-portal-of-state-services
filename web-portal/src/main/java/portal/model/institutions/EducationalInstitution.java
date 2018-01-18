@@ -238,6 +238,6 @@ public class EducationalInstitution extends Institution {
         if (!date.after(currentDate)) {
             throw new InvalidAppointmentDateException();
         }
-        request.makeAppointment(date);
+        request.setAppointment(date);
     }
 }

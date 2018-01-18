@@ -148,10 +148,6 @@ public class EduRequest {
         setStatus(status);
     }
 
-    public void makeAppointment(Date appointment) {
-        setAppointment(appointment);
-    }
-
     public boolean isPassedAppointment() {
         Date currentDate = new Date();
         return (appointment != null ? appointment.before(currentDate): false);
